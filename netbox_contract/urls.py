@@ -53,6 +53,33 @@ urlpatterns = (
         kwargs={'model': models.ServiceProvider},
     ),
 
+    # Service Providers
+    path(
+        'serviceproviders/',
+        views.ServiceProviderListView.as_view(),
+        name='serviceprovider_list',
+    ),
+    path(
+        'serviceproviders/add/',
+        views.ServiceProviderEditView.as_view(),
+        name='serviceprovider_add',
+    ),
+    path(
+        'serviceproviders/import/',
+        views.ServiceProviderBulkImportView.as_view(),
+        name='serviceprovider_bulk_import',
+    ),
+    path(
+        'serviceproviders/edit/',
+        views.ServiceProviderBulkEditView.as_view(),
+        name='serviceprovider_bulk_edit',
+    ),
+    
+    # Providers
+    path('providers/', include(get_model_urls('circuits', 'provider', detail=False))),
+    path('providers/<int:pk>/', include(get_model_urls('circuits', 'provider'))),
+
+
     # Contracts
     path('contracts/', views.ContractListView.as_view(), name='contract_list'),
     path('contracts/add/', views.ContractEditView.as_view(), name='contract_add'),

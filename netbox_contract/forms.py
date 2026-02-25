@@ -8,10 +8,11 @@ from netbox.forms import (
     NetBoxModelFilterSetForm,
     NetBoxModelForm,
     NetBoxModelImportForm,
+    PrimaryModelForm,
 )
 from tenancy.forms import ContactModelFilterForm, TenancyFilterForm
 from tenancy.models import Tenant
-from circuits.models import Provider
+from circuits.models import Provider, ProviderAccount
 from utilities.forms import BOOLEAN_WITH_BLANK_CHOICES, get_field_value
 from utilities.forms.fields import (
     ColorField,
@@ -26,6 +27,7 @@ from utilities.forms.fields import (
     SlugField,
     TagFilterField,
 )
+from utilities.forms.rendering import FieldSet, InlineFields
 from utilities.forms.widgets import DatePicker, HTMXSelect
 from utilities.templatetags.builtins.filters import bettertitle
 
@@ -41,9 +43,12 @@ from .models import (
     Invoice,
     InvoiceLine,
     ServiceProvider,
+    ProviderAccountForm,
+    ProviderForm,
     StatusChoices,
     InvoiceStatusChoices,
 )
+from ipam.models import ASN
 
 plugin_settings = settings.PLUGINS_CONFIG['netbox_contract']
 
@@ -560,6 +565,41 @@ class InvoiceBulkEditForm(NetBoxModelBulkEditForm):
 
     model = Invoice
 
+
+# Circuit Provier forms
+
+class ProviderForm(PrimaryModelForm):
+    slug = SlugField()
+    asns = DynamicModelMultipleChoiceField(
+        queryset=ASN.objects.all(),
+        label=_('ASNs'),
+        required=False
+    )
+
+    fieldsets = (
+        FieldSet('name', 'slug', 'asns', 'description', 'tags'),
+    )
+
+    class Meta:
+        model = Provider
+        fields = [
+            'name', 'slug', 'asns', 'description', 'owner', 'comments', 'tags',
+        ]
+
+
+class ProviderAccountForm(PrimaryModelForm):
+    provider = DynamicModelChoiceField(
+        label=_('Provider'),
+        queryset=Provider.objects.all(),
+        selector=True,
+        quick_add=True
+    )
+
+    class Meta:
+        model = ProviderAccount
+        fields = [
+            'provider', 'name', 'account', 'description', 'owner', 'comments', 'tags',
+        ]
 
 # service Provider forms
 

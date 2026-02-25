@@ -58,6 +58,24 @@ serviceprovider_buttons = [
     )
 ]
 
+provider_buttons = [
+    PluginMenuButton(
+        link='plugins:netbox_contract:provider_add',
+        title=_('Add'),
+        icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contract.add_provider'],
+    )
+]
+
+provideraccount_buttons = [
+    PluginMenuButton(
+        link='plugins:netbox_contract:provideraccount_add',
+        title=_('Add'),
+        icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contract.add_provideraccount'],
+    )
+]
+
 contract_menu_item = PluginMenuItem(
     link='plugins:netbox_contract:contract_list',
     link_text=_('Contracts'),
@@ -99,6 +117,21 @@ service_provider_menu_item = PluginMenuItem(
     buttons=serviceprovider_buttons,
     permissions=['netbox_contract.view_serviceprovider'],
 )
+
+provider_menu_item = PluginMenuItem(
+    link='plugins:netbox_contract:provider_list',
+    link_text=_('Providers'),
+    buttons=provider_buttons,
+    permissions=['netbox_contract.view_provider'],
+)
+
+provideraccount_menu_item = PluginMenuItem(
+    link='plugins:netbox_contract:provideraccount_list',
+    link_text=_('Provider Accounts'),
+    buttons=provideraccount_buttons,
+    permissions=['netbox_contract.view_provideraccount'],
+)
+
 contract_assignemnt_menu_item = PluginMenuItem(
     link='plugins:netbox_contract:contractassignment_list',
     link_text=_('Contracts assignments'),
@@ -112,6 +145,8 @@ items = (
     invoicelines_menu_item,
     accounting_dimensions_menu_item,
     service_provider_menu_item,
+    provider_menu_item,
+    provideraccount_menu_item,
     contract_assignemnt_menu_item,
 )
 
