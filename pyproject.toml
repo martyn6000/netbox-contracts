@@ -7,9 +7,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-contract"
-version = "2.4.5"
+version = "1.0"
 authors = [
-  { name="Marc Lebreuil", email="marc@famillelebreuil.net" },
+  { name="Martyn Stanton", email="martynstanton@hotmail.com" },
 ]
 
 description = "Contract management plugin for Netbox"
@@ -33,12 +33,12 @@ dev = ["check-manifest", "mkdocs", "mkdocs-material", "ruff"]
 test = ["coverage", "pytest", "pytest-cov"]
 
 [project.urls]
-"Homepage" = "https://github.com/mlebreuil/netbox-contract"
-"Bug Tracker" = "https://github.com/mlebreuil/netbox-contract/issues"
+"Homepage" = "https://github.com/martyn6000/netbox-contracts"
+"Bug Tracker" = "https://github.com/martyn6000/netbox-contracts/issues"
 
 [tool.setuptools]
 packages = [
-    "netbox_contract",
+    "netbox_contracts",
 ]
 package-data = { "netbox_contract" = ["**/*", "templates/**"] }
 exclude-package-data = { netbox_contract = ["tests/*"] }
