@@ -13,7 +13,7 @@ from netbox.models.features import ContactsMixin
 from utilities.choices import ChoiceSet
 from utilities.fields import ColorField
 from virtualization.choices import VirtualMachineStatusChoices
-
+from circuits.models import Provider, ProviderAccount
 
 class StatusChoices(ChoiceSet):
     key = 'Contract.status'
@@ -69,7 +69,7 @@ class ContractType(NetBoxModel):
 
 class ContractAssignment(NetBoxModel):
     content_type = models.ForeignKey(to=ContentType, on_delete=models.CASCADE, verbose_name=_('content type'))
-    content_object = GenericForeignKey(ct_field='content_type', fk_field='object_id')
+    content_object = GenericForeignKey(ct_field='content_type', fk_field='content_object')
     contract = models.ForeignKey(
         to='Contract',
         on_delete=models.CASCADE,
@@ -95,13 +95,13 @@ class ContractAssignment(NetBoxModel):
     )
     onsite_fe = models.BooleanField(default=False)
     fe_vendor = models.ForeignKey(
-        to='circuits.Providers',
+        to='circuits.Provider',
         on_delete=models.PROTECT,
         related_name='+',
         blank=True,
         null=True
     )
-    clone_fields = ('content_type', 'object_id', 'contract')
+    clone_fields = ('content_type', 'content_object', 'contract')
 
     class Meta:
         ordering = ('contract',)
@@ -134,14 +134,14 @@ class Contract(ContactsMixin, NetBoxModel):
         verbose_name=_('contract type'),
     )
     provider = models.ForeignKey(
-        to='circuits.Providers',
+        to='circuits.Provider',
         on_delete=models.PROTECT,
         related_name='+',
         blank=True,
         null=True
     )
     provider_account = models.ForeignKey(
-        to='circuits.ProviderAccounts',
+        to='circuits.ProviderAccount',
         on_delete=models.PROTECT,
         related_name='+',
         blank=True,
@@ -173,13 +173,13 @@ class Contract(ContactsMixin, NetBoxModel):
         default=CURRENCY_DEFAULT,
         verbose_name=_('currency'),
     )
-    mrc = models.DecimalField(
-        verbose_name=_('monthly recuring cost'),
+    yrc = models.DecimalField(
+        verbose_name=_('yearly recuring cost'),
         max_digits=10,
         decimal_places=2,
         blank=True,
         null=True,
-        help_text=_('Use either this field of the yearly recuring cost field'),
+        help_text=_('Use either this field of the monthly recuring cost field'),
     )
     nrc = models.DecimalField(verbose_name=_('none recuring cost'), default=0, max_digits=10, decimal_places=2)
     documents = models.URLField(

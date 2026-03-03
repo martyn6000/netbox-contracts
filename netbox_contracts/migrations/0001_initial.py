@@ -121,7 +121,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name='invoice',
-                        to='netbox_contract.contract',
+                        to='netbox_contracts.contract',
                     ),
                 ),
                 (
@@ -141,7 +141,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name='contract',
-                to='netbox_contract.serviceprovider',
+                to='netbox_contracts.serviceprovider',
             ),
         ),
         migrations.AddField(

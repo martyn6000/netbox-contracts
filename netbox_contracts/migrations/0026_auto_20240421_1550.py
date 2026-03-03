@@ -11,7 +11,7 @@ def update_changed_object_type(apps, schema_editor):
     ObjectChange = apps.get_model('core', 'ObjectChange')
     ContentType = apps.get_model('contenttypes', 'ContentType')
     ct = ContentType.objects.get(
-        app_label='netbox_contract', model='contractassignment'
+        app_label='netbox_contracts', model='contractassignment'
     )
 
     for change in ObjectChange.objects.filter(
@@ -23,7 +23,7 @@ def update_changed_object_type(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('netbox_contract', '0025_remove_contract_circuit_and_more'),
+        ('netbox_contracts', '0025_remove_contract_circuit_and_more'),
     ]
 
     operations = [

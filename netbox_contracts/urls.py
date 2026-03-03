@@ -1,20 +1,61 @@
 from django.urls import include, path
 from netbox.views.generic import ObjectChangeLogView
 from utilities.urls import get_model_urls
-
 from . import models, views
 
 urlpatterns = (
     # Providers
-    path('providers/', include(get_model_urls('circuits', 'provider', detail=False))),
-    path('providers/<int:pk>/', include(get_model_urls('circuits', 'provider'))),
+    path(
+        'providers/',
+        include(
+            get_model_urls(
+                'circuits',
+                'provider',
+                detail=False
+            )
+        )
+    ),
+    path(
+        'providers/<int:pk>/',
+        include(
+            get_model_urls(
+                'circuits', 
+                'provider'
+            )
+        )
+    ),
     # Provider Accounts
-    path('provider-accounts/', include(get_model_urls('circuits', 'provideraccount', detail=False))),
-    path('provider-accounts/<int:pk>/', include(get_model_urls('circuits', 'provideraccount'))),
+    path(
+        'provider-accounts/',
+        include(
+            get_model_urls(
+                'circuits',
+                'provideraccount',
+                detail=False
+            )
+        )
+    ),
+    path(
+        'provider-accounts/<int:pk>/',
+        include(
+            get_model_urls(
+                'circuits',
+                'provideraccount'
+            )
+        )
+    ),
 
     # Contracts
-    path('contracts/', views.ContractListView.as_view(), name='contract_list'),
-    path('contracts/add/', views.ContractEditView.as_view(), name='contract_add'),
+    path(
+        'contracts/',
+        views.ContractListView.as_view(),
+        name='contract_list'
+    ),
+    path(
+        'contracts/add/',
+        views.ContractEditView.as_view(),
+        name='contract_add'
+    ),
     path(
         'contracts/import/',
         views.ContractBulkImportView.as_view(),
@@ -131,5 +172,4 @@ urlpatterns = (
         name='contractassignment_changelog',
         kwargs={'model': models.ContractAssignment},
     ),
-    
 )

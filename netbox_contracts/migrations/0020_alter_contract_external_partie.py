@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('netbox_contract', '0019_auto_20230924_1813'),
+        ('netbox_contracts', '0019_auto_20230924_1813'),
     ]
 
     operations = [
@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 blank=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name='contracts',
-                to='netbox_contract.serviceprovider',
+                to='netbox_contracts.serviceprovider',
             ),
         ),
     ]

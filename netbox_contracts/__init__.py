@@ -8,7 +8,7 @@ class ContractsConfig(PluginConfig):
     version = '1.0'
     author = 'Martyn Stanton'
     author_email = 'marrtynstanton@hotmail.com'
-    base_url = 'contracts'
+    base_url = 'scb'
     min_version = '4.3.0'
     required_settings = []
     default_settings = {

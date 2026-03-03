@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
     dependencies = [
         (
-            'netbox_contract',
+            'netbox_contracts',
             '0023_rename_contractassignement_contractassignment_and_more',
         ),
     ]

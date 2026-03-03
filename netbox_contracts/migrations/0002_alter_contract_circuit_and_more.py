@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ('circuits', '0038_cabling_cleanup'),
-        ('netbox_contract', '0001_initial'),
+        ('netbox_contracts', '0001_initial'),
     ]
 
     operations = [
@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name='contracts',
-                to='netbox_contract.serviceprovider',
+                to='netbox_contracts.serviceprovider',
             ),
         ),
     ]

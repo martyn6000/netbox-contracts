@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('netbox_contract', '0007_invoice_date'),
+        ('netbox_contracts', '0007_invoice_date'),
     ]
 
     operations = [

@@ -7,9 +7,9 @@ def migrate_external_partie(apps, schema_editor):
     """
     Migrate contract Service providers to the new model
     """
-    Contract = apps.get_model('netbox_contract', 'Contract')
+    Contract = apps.get_model('netbox_contracts', 'Contract')
     ContentType = apps.get_model('contenttypes', 'ContentType')
-    ServiceProvider = apps.get_model('netbox_contract', 'ServiceProvider')
+    ServiceProvider = apps.get_model('netbox_contracts', 'ServiceProvider')
     ServiceProviderType = ContentType.objects.get(
         model=ServiceProvider._meta.model_name,
         app_label=ServiceProvider._meta.app_label,
@@ -25,7 +25,7 @@ def reverse_external_partie(apps, schema_editor):
     """
     Migrate contract Service providers to the new model
     """
-    Contract = apps.get_model('netbox_contract', 'Contract')
+    Contract = apps.get_model('netbox_contracts', 'Contract')
 
     for contract in Contract.objects.all():
         contract.external_partie_object_type = None
@@ -35,7 +35,7 @@ def reverse_external_partie(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('netbox_contract', '0018_contract_external_partie_object_id_and_more'),
+        ('netbox_contracts', '0018_contract_external_partie_object_id_and_more'),
     ]
 
     operations = [

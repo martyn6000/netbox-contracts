@@ -1,18 +1,13 @@
-from datetime import date, timedelta
-
-from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Case, F, When
-from django.db.models.functions import Round
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from netbox.views import generic
-from netbox.views.generic.utils import get_prerequisite_model
-from utilities.forms import restrict_form_fields
+from utilities.query import count_related
 from utilities.querydict import normalize_querydict
-from utilities.views import register_model_view
-
+from utilities.views import register_model_view, GetRelatedModelsMixin
+from circuits.models import Circuit, Provider, ProviderAccount, VirtualCircuit
+from circuits.tables import ProviderTable, ProviderAccountTable
+from circuits.forms import ProviderImportForm, ProviderAccountImportForm
 from . import filtersets, forms, tables
 from .models import (
     Contract,
@@ -20,10 +15,8 @@ from .models import (
     ContractType,
     ServiceLevelAgreement,
 )
-from circuits.models import (
-    Provider,
-    ProviderAccount,
-)
+from .tables import ProviderListTable, ProviderAccountListTable
+from ipam.models import ASN
 
 plugin_settings = settings.PLUGINS_CONFIG['netbox_contracts']
 
@@ -212,70 +205,149 @@ class ContractBulkDeleteView(generic.BulkDeleteView):
     table = tables.ContractListTable
   
 # Provider views
-class ProviderView(generic.ObjectView):
-    queryset = Provider.objects.all()
-
+@register_model_view(Provider, 'list', path='', detail=False)
 class ProviderListView(generic.ObjectListView):
-    queryset = Provider.objects.all()
-    table = tables.ProviderListTable
+    queryset = Provider.objects.annotate(
+        count_circuits=count_related(Circuit, 'provider'),
+        asn_count=count_related(ASN, 'providers'),
+        account_count=count_related(ProviderAccount, 'provider'),
+    )
     filterset = filtersets.ProviderFilterSet
     filterset_form = forms.ProviderFilterForm
+    table = ProviderTable
 
+
+@register_model_view(Provider)
+class ProviderView(GetRelatedModelsMixin, generic.ObjectView):
+    queryset = Provider.objects.all()
+
+    def get_extra_context(self, request, instance):
+        return {
+            'related_models': self.get_related_models(
+                request,
+                instance,
+                omit=(),
+                extra=(
+                    (
+                        VirtualCircuit.objects.restrict(request.user, 'view').filter(
+                            provider_network__provider=instance
+                        ),
+                        'provider_id',
+                    ),
+                ),
+                ),
+        }
+
+
+@register_model_view(Provider, 'add', detail=False)
+@register_model_view(Provider, 'edit')
 class ProviderEditView(generic.ObjectEditView):
     queryset = Provider.objects.all()
     form = forms.ProviderForm
 
-class ProviderBulkImportView(generic.BulkImportView):
-    queryset = Provider.objects.all()
-    model_form = forms.ProviderCSVForm
-    table = tables.ProviderListTable
 
-class ProviderBulkEditView(generic.BulkEditView):
-    queryset = Provider.objects.annotate()
-    filterset = filtersets.ProviderFilterSet
-    table = tables.ProviderListTable
-    form = forms.ProviderBulkEditForm
-
+@register_model_view(Provider, 'delete')
 class ProviderDeleteView(generic.ObjectDeleteView):
     queryset = Provider.objects.all()
 
-class ProviderBulkDeleteView(generic.BulkDeleteView):
-    queryset = Provider.objects.annotate()
-    filterset = filtersets.ProviderFilterSet
-    table = tables.ProviderListTable
-  
-# Provider Account views
-class ProviderAccountView(generic.ObjectView):
-    queryset = ProviderAccount.objects.all()
 
+@register_model_view(Provider, 'bulk_import', path='import', detail=False)
+class ProviderBulkImportView(generic.BulkImportView):
+    queryset = Provider.objects.all()
+    model_form = ProviderImportForm
+
+
+@register_model_view(Provider, 'bulk_edit', path='edit', detail=False)
+class ProviderBulkEditView(generic.BulkEditView):
+    queryset = Provider.objects.annotate(
+        count_circuits=count_related(Circuit, 'provider')
+    )
+    filterset = filtersets.ProviderFilterSet
+    table = ProviderTable
+    form = forms.ProviderBulkEditForm
+
+
+@register_model_view(Provider, 'bulk_rename', path='rename', detail=False)
+class ProviderBulkRenameView(generic.BulkRenameView):
+    queryset = Provider.objects.all()
+    filterset = filtersets.ProviderFilterSet
+
+
+@register_model_view(Provider, 'bulk_delete', path='delete', detail=False)
+class ProviderBulkDeleteView(generic.BulkDeleteView):
+    queryset = Provider.objects.annotate(
+        count_circuits=count_related(Circuit, 'provider')
+    )
+    filterset = filtersets.ProviderFilterSet
+    table = ProviderTable
+
+
+#
+# ProviderAccounts
+#
+
+@register_model_view(ProviderAccount, 'list', path='', detail=False)
 class ProviderAccountListView(generic.ObjectListView):
-    queryset = ProviderAccount.objects.all()
-    table = tables.ProviderAccountListTable
+    queryset = ProviderAccount.objects.annotate(
+        count_circuits=count_related(Circuit, 'provider_account')
+    )
     filterset = filtersets.ProviderAccountFilterSet
     filterset_form = forms.ProviderAccountFilterForm
+    table = ProviderAccountTable
 
+
+@register_model_view(ProviderAccount)
+class ProviderAccountView(GetRelatedModelsMixin, generic.ObjectView):
+    queryset = ProviderAccount.objects.all()
+
+    def get_extra_context(self, request, instance):
+        return {
+            'related_models': self.get_related_models(request, instance),
+        }
+
+
+@register_model_view(ProviderAccount, 'add', detail=False)
+@register_model_view(ProviderAccount, 'edit')
 class ProviderAccountEditView(generic.ObjectEditView):
     queryset = ProviderAccount.objects.all()
     form = forms.ProviderAccountForm
 
-class ProviderAccountBulkImportView(generic.BulkImportView):
-    queryset = ProviderAccount.objects.all()
-    model_form = forms.ProviderAccountCSVForm
-    table = tables.ProviderAccountListTable
 
-class ProviderAccountBulkEditView(generic.BulkEditView):
-    queryset = ProviderAccount.objects.annotate()
-    filterset = filtersets.ProviderAccountFilterSet
-    table = tables.ProviderAccountListTable
-    form = forms.ProviderAccountBulkEditForm
-
+@register_model_view(ProviderAccount, 'delete')
 class ProviderAccountDeleteView(generic.ObjectDeleteView):
     queryset = ProviderAccount.objects.all()
 
-class ProviderAccountBulkDeleteView(generic.BulkDeleteView):
-    queryset = ProviderAccount.objects.annotate()
+
+@register_model_view(ProviderAccount, 'bulk_import', path='import', detail=False)
+class ProviderAccountBulkImportView(generic.BulkImportView):
+    queryset = ProviderAccount.objects.all()
+    model_form = ProviderAccountImportForm
+    table = ProviderAccountTable
+
+
+@register_model_view(ProviderAccount, 'bulk_edit', path='edit', detail=False)
+class ProviderAccountBulkEditView(generic.BulkEditView):
+    queryset = ProviderAccount.objects.annotate(
+        count_circuits=count_related(Circuit, 'provider_account')
+    )
     filterset = filtersets.ProviderAccountFilterSet
-    table = tables.ProviderAccountListTable
+    table = ProviderAccountTable
+    form = forms.ProviderAccountBulkEditForm
+
+
+@register_model_view(ProviderAccount, 'bulk_rename', path='rename', detail=False)
+class ProviderAccountBulkRenameView(generic.BulkRenameView):
+    queryset = ProviderAccount.objects.all()
+    filterset = filtersets.ProviderAccountFilterSet
+
+
+@register_model_view(ProviderAccount, 'bulk_delete', path='delete', detail=False)
+class ProviderAccountBulkDeleteView(generic.BulkDeleteView):
+    queryset = ProviderAccount.objects.annotate(
+        count_circuits=count_related(Circuit, 'provider_account')
+    )
+    filterset = filtersets.ProviderAccountFilterSet
+    table = ProviderAccountTable
   
 # Service Level Agreement views
 class ServiceLevelAgreementView(generic.ObjectView):
@@ -293,7 +365,7 @@ class ServiceLevelAgreementEditView(generic.ObjectEditView):
 
 class ServiceLevelAgreementBulkImportView(generic.BulkImportView):
     queryset = ServiceLevelAgreement.objects.all()
-    model_form = forms.ServiceLevelAgreementCSVForm
+    model_form = forms.ServiceLevelAgreementBulkEditForm
     table = tables.ServiceLevelAgreementListTable
 
 class ServiceLevelAgreementBulkEditView(generic.BulkEditView):

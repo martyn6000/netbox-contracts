@@ -21,6 +21,7 @@ from utilities.filters import (
 )
 from utilities.filtersets import register_filterset
 
+
 __all__ = (
     'NestedGroupModelFilterSetForm',
     'NetBoxModelFilterSetForm',

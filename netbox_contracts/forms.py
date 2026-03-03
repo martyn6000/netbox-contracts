@@ -41,7 +41,8 @@ from .models import (
     StatusChoices,
 )
 from ipam.models import ASN
-from netbox.forms.mixins import OwnerMixin
+from netbox.forms.mixins import OwnerMixin, OwnerFilterMixin
+from dcim.models import Location, Region, Site, SiteGroup
 
 plugin_settings = settings.PLUGINS_CONFIG['netbox_contracts']
 
@@ -55,6 +56,12 @@ class PrimaryModelBulkEditForm(OwnerMixin, NetBoxModelBulkEditForm):
         required=False
     )
     comments = CommentField()
+
+class PrimaryModelFilterSetForm(OwnerFilterMixin, NetBoxModelFilterSetForm):
+    """
+    FilterSet form for models which inherit from PrimaryModel.
+    """
+    pass
 
 # Contract
 class ContractForm(NetBoxModelForm):
@@ -102,7 +109,7 @@ class ContractForm(NetBoxModelForm):
             'end_date',
             'notice_period',
             'currency',
-            'mrc',
+            'yrc',
             'nrc',
             'parent',
             'documents',
@@ -120,7 +127,6 @@ class ContractForm(NetBoxModelForm):
 
         if self.cleaned_data['mrc'] and self.cleaned_data['yrc']:
             raise ValidationError('you should set monthly OR yearly recuring costs not both')
-
 
 class ContractFilterForm(ContactModelFilterForm, TenancyFilterForm, NetBoxModelFilterSetForm):
     model = Contract
@@ -165,7 +171,6 @@ class ContractFilterForm(ContactModelFilterForm, TenancyFilterForm, NetBoxModelF
 
     tag = TagFilterField(model)
 
-
 class ContractCSVForm(NetBoxModelImportForm):
     tenant = CSVModelChoiceField(
         queryset=Tenant.objects.all(),
@@ -200,7 +205,7 @@ class ContractCSVForm(NetBoxModelImportForm):
             'start_date',
             'end_date',
             'currency',
-            'mrc',
+            'yrc',
             'nrc',
             'documents',
             'comments',
@@ -257,7 +262,6 @@ class ContractTypeForm(NetBoxModelForm):
             'tags',
         )
 
-
 class ContractTypeCSVForm(NetBoxModelImportForm):
     name = forms.CharField(max_length=100, label=_('Name'))
     description = CommentField(label=_('Description'))
@@ -267,13 +271,11 @@ class ContractTypeCSVForm(NetBoxModelImportForm):
         model = ContractType
         fields = ['name', 'description', 'color']
 
-
 class ContractTypeBulkEditForm(NetBoxModelBulkEditForm):
     description = CommentField(label=_('Description'))
     nullable_fields = ('comments',)
     color = ColorField(label=_('Color'), required=False,)
     model = ContractType
-
 
 class ContractTypeFilterForm(NetBoxModelFilterSetForm):
     model = ContractType
@@ -312,6 +314,60 @@ class ProviderAccountForm(PrimaryModelForm):
         fields = [
             'provider', 'name', 'account', 'description', 'owner', 'comments', 'tags',
         ]
+
+class ProviderFilterForm(ContactModelFilterForm, PrimaryModelFilterSetForm):
+    model = Provider
+    fieldsets = (
+        FieldSet('q', 'filter_id', 'tag'),
+        FieldSet('region_id', 'site_group_id', 'site_id', name=_('Location')),
+        FieldSet('asn_id', name=_('ASN')),
+        FieldSet('owner_group_id', 'owner_id', name=_('Ownership')),
+        FieldSet('contact', 'contact_role', 'contact_group', name=_('Contacts')),
+    )
+    region_id = DynamicModelMultipleChoiceField(
+        queryset=Region.objects.all(),
+        required=False,
+        label=_('Region')
+    )
+    site_group_id = DynamicModelMultipleChoiceField(
+        queryset=SiteGroup.objects.all(),
+        required=False,
+        label=_('Site group')
+    )
+    site_id = DynamicModelMultipleChoiceField(
+        queryset=Site.objects.all(),
+        required=False,
+        query_params={
+            'region_id': '$region_id',
+            'site_group_id': '$site_group_id',
+        },
+        label=_('Site')
+    )
+    asn_id = DynamicModelMultipleChoiceField(
+        queryset=ASN.objects.all(),
+        required=False,
+        label=_('ASNs')
+    )
+    tag = TagFilterField(model)
+
+class ProviderAccountFilterForm(ContactModelFilterForm, PrimaryModelFilterSetForm):
+    model = ProviderAccount
+    fieldsets = (
+        FieldSet('q', 'filter_id', 'tag'),
+        FieldSet('provider_id', 'account', name=_('Attributes')),
+        FieldSet('owner_group_id', 'owner_id', name=_('Ownership')),
+        FieldSet('contact', 'contact_role', 'contact_group', name=_('Contacts')),
+    )
+    provider_id = DynamicModelMultipleChoiceField(
+        queryset=Provider.objects.all(),
+        required=False,
+        label=_('Provider')
+    )
+    account = forms.CharField(
+        label=_('Account'),
+        required=False
+    )
+    tag = TagFilterField(model)
 
 class ProviderBulkEditForm(PrimaryModelBulkEditForm):
     asns = DynamicModelMultipleChoiceField(
@@ -448,7 +504,7 @@ class ServiceLevelAgreementImportForm(NetBoxModelImportForm):
         model = ServiceLevelAgreement
         fields = ['content_type', 'contract', 'tags']
 
-class CServiceLevelAgreementBulkEditForm(NetBoxModelBulkEditForm):
+class ServiceLevelAgreementBulkEditForm(NetBoxModelBulkEditForm):
     contract = DynamicModelChoiceField(
         queryset=ServiceLevelAgreement.objects.all(),
         required=False,
@@ -456,6 +512,4 @@ class CServiceLevelAgreementBulkEditForm(NetBoxModelBulkEditForm):
         label=_('Service Level Agreement'),
     )
     model = ServiceLevelAgreement
-
-
 

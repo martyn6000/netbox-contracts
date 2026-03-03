@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('extras', '0084_staging'),
         ('contenttypes', '0002_remove_content_type_name'),
-        ('netbox_contract', '0014_contract_end_date'),
+        ('netbox_contracts', '0014_contract_end_date'),
     ]
 
     operations = [
@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.PROTECT,
                         related_name='assignments',
-                        to='netbox_contract.contract',
+                        to='netbox_contracts.contract',
                     ),
                 ),
                 (

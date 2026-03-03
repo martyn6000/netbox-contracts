@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('netbox_contract', '0003_alter_contract_custom_field_data_and_more'),
+        ('netbox_contracts', '0003_alter_contract_custom_field_data_and_more'),
     ]
 
     operations = [

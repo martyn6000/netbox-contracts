@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ('extras', '0115_convert_dashboard_widgets'),
-        ('netbox_contract', '0028_invoiceline_accounting_dimensions'),
+        ('netbox_contracts', '0028_invoiceline_accounting_dimensions'),
     ]
 
     operations = [

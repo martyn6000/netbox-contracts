@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
-        ('netbox_contract', '0017_alter_contract_accounting_dimensions'),
+        ('netbox_contracts', '0017_alter_contract_accounting_dimensions'),
     ]
 
     operations = [

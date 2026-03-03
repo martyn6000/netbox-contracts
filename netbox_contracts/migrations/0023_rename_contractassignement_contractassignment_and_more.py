@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
         ('extras', '0107_cachedvalue_extras_cachedvalue_object'),
         ('contenttypes', '0002_remove_content_type_name'),
         (
-            'netbox_contract',
+            'netbox_contracts',
             '0022_alter_contract_internal_partie_alter_contract_parent',
         ),
     ]

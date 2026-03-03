@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('extras', '0122_charfield_null_choices'),
-        ('netbox_contract', '0040_alter_contract_currency_alter_invoice_currency_and_more'),
+        ('netbox_contracts', '0040_alter_contract_currency_alter_invoice_currency_and_more'),
     ]
 
     operations = [

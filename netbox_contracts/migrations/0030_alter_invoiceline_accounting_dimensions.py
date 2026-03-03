@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('netbox_contract', '0029_remove_invoiceline_accounting_dimensions_and_more'),
+        ('netbox_contracts', '0029_remove_invoiceline_accounting_dimensions_and_more'),
     ]
 
     operations = [

@@ -8,7 +8,7 @@ def make_many_contracts(apps, schema_editor):
     Adds the Contract object in Invoice.contract to the
     many-to-many relationship in Invoice.contracts
     """
-    Invoice = apps.get_model('netbox_contract', 'Invoice')
+    Invoice = apps.get_model('netbox_contracts', 'Invoice')
 
     for invoice in Invoice.objects.all():
         invoice.contracts.add(invoice.contract)
@@ -16,7 +16,7 @@ def make_many_contracts(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('netbox_contract', '0010_invoice_contracts'),
+        ('netbox_contracts', '0010_invoice_contracts'),
     ]
 
     operations = [

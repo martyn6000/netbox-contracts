@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
     dependencies = [
         (
-            'netbox_contract',
+            'netbox_contracts',
             '0032_alter_invoice_period_end_alter_invoice_period_start_and_more',
         ),
     ]

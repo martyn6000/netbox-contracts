@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ('extras', '0115_convert_dashboard_widgets'),
-        ('netbox_contract', '0034_contract_yrc_alter_contract_mrc'),
+        ('netbox_contracts', '0034_contract_yrc_alter_contract_mrc'),
     ]
 
     operations = [
