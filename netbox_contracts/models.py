@@ -144,17 +144,24 @@ class ContractAssignment(NetBoxModel):
             blank=True,
             null=True
         )
-    fe_vendor = models.ForeignKey(
+    provider_account = models.ForeignKey(
             to=Provider,
-            on_delete=models.CASCADE,
-            related_name='vendor',
+            on_delete=models.PROTECT,
+            related_name='provideraccount',
             blank=True,
             null=True
         )
-    fe_vendor_account = models.ForeignKey(
+    fe = models.ForeignKey(
+            to=Provider,
+            on_delete=models.PROTECT,
+            related_name='fe',
+            blank=True,
+            null=True
+        )
+    fe_account = models.ForeignKey(
         to=ProviderAccount,
         on_delete=models.PROTECT,
-        related_name='vendoraccount',
+        related_name='feaccount',
         blank=True,
         null=True
     )
@@ -167,8 +174,8 @@ class ContractAssignment(NetBoxModel):
         'yrc',
         'nrc',
         'sla',
-        'fe_vendor',
-        'fe_vendor_account',
+        'fe',
+        'fe_account',
     )
 
     class Meta:

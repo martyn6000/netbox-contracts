@@ -101,8 +101,8 @@ class ContractAssignmentListTable(NetBoxTable):
     yrc = tables.Column(linkify=True)
     nrc = tables.Column(linkify=True)
     sla = tables.Column(linkify=True)
-    fe_vendor = tables.Column(linkify=True)
-    fe_vendor_account = tables.Column(linkify=True)
+    fe = tables.Column(linkify=True)
+    fe_account = tables.Column(linkify=True)
     tags = columns.TagColumn(url_name='plugins:netbox_contracts:contractassignment_list')
     contract__provider = tables.Column(linkify=True)
     contract__contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
@@ -121,8 +121,8 @@ class ContractAssignmentListTable(NetBoxTable):
             'yrc',
             'nrc',
             'sla',
-            'fe_vendor',
-            'fe_vendor_account',
+            'fe',
+            'fe_account',
             'contract__provider',
             'contract__contract_type',
             'contract__object_type',
@@ -142,8 +142,8 @@ class ContractAssignmentListTable(NetBoxTable):
             'yrc',
             'nrc',
             'sla',
-            'fe_vendor',
-            'fe_vendor_account',
+            'fe',
+            'fe_account',
             'contract__provider',
             'object__region'
         )
@@ -157,10 +157,10 @@ class ContractAssignmentObjectTable(NetBoxTable):
     contract__provider_account = tables.Column(
         verbose_name='Provider account', linkify=True
     )    
-    fe_vendor = tables.Column(
+    fe = tables.Column(
         verbose_name='FE Provider', linkify=True
     )
-    fe_vendor_account = tables.Column(
+    fe_account = tables.Column(
         verbose_name='FE Provider account', linkify=True
     )
     contract__contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
@@ -180,8 +180,8 @@ class ContractAssignmentObjectTable(NetBoxTable):
             'nrc',
             'comments',
             'actions',
-            'fe_vendor',
-            'fe_vendor_account',
+            'fe',
+            'fe_account',
         )
         default_columns = (
             'pk',
@@ -191,7 +191,7 @@ class ContractAssignmentObjectTable(NetBoxTable):
             'contract__provider',
             'contract__contract_type',
             'end_date',
-            'fe_vendor',
+            'fe',
         )
         order_by = ('contract__status')
 

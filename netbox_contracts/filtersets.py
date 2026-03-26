@@ -158,7 +158,7 @@ class ContractAssignmentFilterSet(NetBoxModelFilterSet):
 
     class Meta:
         model = ContractAssignment
-        fields = ('id', 'contract', 'provider', 'fe_vendor', 'object_id')
+        fields = ('id', 'contract', 'provider', 'fe', 'object_id')
 
     def search(self, queryset, name, value):
         return queryset.filter(Q(contract__name__icontains=value))

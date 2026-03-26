@@ -24,12 +24,12 @@ from ipam.models import ASN
 from django.db.models.functions import Round
 from virtualization.models import VirtualMachine
 
-from .constants import (
-    CONTRACT_STATUS_ACTIVE,
-    CONTRACT_STATUS_EXPIRED,
-    CONTRACT_STATUS_FUTURE,
-    CONTRACT_STATUS_UNSPECIFIED,
-)
+# from .constants import (
+#     CONTRACT_STATUS_ACTIVE,
+#     CONTRACT_STATUS_EXPIRED,
+#     CONTRACT_STATUS_FUTURE,
+#     CONTRACT_STATUS_UNSPECIFIED,
+# )
 
 plugin_settings = settings.PLUGINS_CONFIG['netbox_contracts']
 
@@ -487,112 +487,112 @@ class VMachineView(generic.ObjectChildrenView):
             object_id=parent.pk
         )
 
-class DeviceContractsHTMXView(LoginRequiredMixin, View):
-    """HTMX endpoint for device contract card content."""
+# class DeviceContractsHTMXView(LoginRequiredMixin, View):
+#     """HTMX endpoint for device contract card content."""
 
-    def get(self, request, pk):
-        device = get_object_or_404(Device, pk=pk)
-        assignments = ContractAssignment.objects.filter(
-            device=device
-        ).select_related(
-            'contract', 'contract__provider', 'end_date'
-        )
+#     def get(self, request, pk):
+#         device = get_object_or_404(Device, pk=pk)
+#         assignments = ContractAssignment.objects.filter(
+#             device=device
+#         ).select_related(
+#             'contract', 'contract__provider', 'end_date'
+#         )
 
-        grouped = {
-            CONTRACT_STATUS_ACTIVE: [],
-            CONTRACT_STATUS_FUTURE: [],
-            CONTRACT_STATUS_UNSPECIFIED: [],
-            CONTRACT_STATUS_EXPIRED: [],
-        }
-        for assignment in assignments:
-            grouped[assignment.status].append(assignment)
+#         grouped = {
+#             CONTRACT_STATUS_ACTIVE: [],
+#             CONTRACT_STATUS_FUTURE: [],
+#             CONTRACT_STATUS_UNSPECIFIED: [],
+#             CONTRACT_STATUS_EXPIRED: [],
+#         }
+#         for assignment in assignments:
+#             grouped[assignment.status].append(assignment)
 
-        return render(
-            request,
-            'netbox_contracts/device_contracts.html',
-            {
-                'device': device,
-                'active': grouped[CONTRACT_STATUS_ACTIVE],
-                'future': grouped[CONTRACT_STATUS_FUTURE],
-                'unspecified': grouped[CONTRACT_STATUS_UNSPECIFIED],
-                'expired_count': len(grouped[CONTRACT_STATUS_EXPIRED]),
-            },
-        )
+#         return render(
+#             request,
+#             'netbox_contracts/device_contracts.html',
+#             {
+#                 'device': device,
+#                 'active': grouped[CONTRACT_STATUS_ACTIVE],
+#                 'future': grouped[CONTRACT_STATUS_FUTURE],
+#                 'unspecified': grouped[CONTRACT_STATUS_UNSPECIFIED],
+#                 'expired_count': len(grouped[CONTRACT_STATUS_EXPIRED]),
+#             },
+#         )
 
-class DeviceContractsExpiredHTMXView(LoginRequiredMixin, View):
-    """HTMX endpoint for expired contracts only."""
+# class DeviceContractsExpiredHTMXView(LoginRequiredMixin, View):
+#     """HTMX endpoint for expired contracts only."""
 
-    def get(self, request, pk):
-        device = get_object_or_404(Device, pk=pk)
-        expired = [
-            a
-            for a in ContractAssignment.objects.filter(
-                device=device
-            ).select_related(
-                'contract', 'contract__provider', 'end_date'
-            )
-            if a.status == CONTRACT_STATUS_EXPIRED
-        ]
+#     def get(self, request, pk):
+#         device = get_object_or_404(Device, pk=pk)
+#         expired = [
+#             a
+#             for a in ContractAssignment.objects.filter(
+#                 device=device
+#             ).select_related(
+#                 'contract', 'contract__provider', 'end_date'
+#             )
+#             if a.status == CONTRACT_STATUS_EXPIRED
+#         ]
 
-        return render(
-            request,
-            'netbox_contracts/contract_list.html',
-            {
-                'assignments': expired,
-            },
-        )
+#         return render(
+#             request,
+#             'netbox_contracts/contract_list.html',
+#             {
+#                 'assignments': expired,
+#             },
+#         )
 
-class VirtualMachineContractsHTMXView(LoginRequiredMixin, View):
-    """HTMX endpoint for virtual machine contract card content."""
+# class VirtualMachineContractsHTMXView(LoginRequiredMixin, View):
+#     """HTMX endpoint for virtual machine contract card content."""
 
-    def get(self, request, pk):
-        virtual_machine = get_object_or_404(VirtualMachine, pk=pk)
-        assignments = ContractAssignment.objects.filter(
-            virtual_machine=virtual_machine
-        ).select_related(
-            'contract', 'contract__vendor', 'sku', 'sku__manufacturer', 'license'
-        )
+#     def get(self, request, pk):
+#         virtual_machine = get_object_or_404(VirtualMachine, pk=pk)
+#         assignments = ContractAssignment.objects.filter(
+#             virtual_machine=virtual_machine
+#         ).select_related(
+#             'contract', 'contract__vendor', 'sku', 'sku__manufacturer', 'license'
+#         )
 
-        grouped = {
-            CONTRACT_STATUS_ACTIVE: [],
-            CONTRACT_STATUS_FUTURE: [],
-            CONTRACT_STATUS_UNSPECIFIED: [],
-            CONTRACT_STATUS_EXPIRED: [],
-        }
-        for assignment in assignments:
-            grouped[assignment.status].append(assignment)
+#         grouped = {
+#             CONTRACT_STATUS_ACTIVE: [],
+#             CONTRACT_STATUS_FUTURE: [],
+#             CONTRACT_STATUS_UNSPECIFIED: [],
+#             CONTRACT_STATUS_EXPIRED: [],
+#         }
+#         for assignment in assignments:
+#             grouped[assignment.status].append(assignment)
 
-        return render(
-            request,
-            'netbox_contracts/virtualmachine_contracts.html',
-            {
-                'virtual_machine': virtual_machine,
-                'active': grouped[CONTRACT_STATUS_ACTIVE],
-                'future': grouped[CONTRACT_STATUS_FUTURE],
-                'unspecified': grouped[CONTRACT_STATUS_UNSPECIFIED],
-                'expired_count': len(grouped[CONTRACT_STATUS_EXPIRED]),
-            },
-        )
+#         return render(
+#             request,
+#             'netbox_contracts/virtualmachine_contracts.html',
+#             {
+#                 'virtual_machine': virtual_machine,
+#                 'active': grouped[CONTRACT_STATUS_ACTIVE],
+#                 'future': grouped[CONTRACT_STATUS_FUTURE],
+#                 'unspecified': grouped[CONTRACT_STATUS_UNSPECIFIED],
+#                 'expired_count': len(grouped[CONTRACT_STATUS_EXPIRED]),
+#             },
+#         )
 
-class VirtualMachineContractsExpiredHTMXView(LoginRequiredMixin, View):
-    """HTMX endpoint for expired contracts only (virtual machine)."""
+# class VirtualMachineContractsExpiredHTMXView(LoginRequiredMixin, View):
+#     """HTMX endpoint for expired contracts only (virtual machine)."""
 
-    def get(self, request, pk):
-        virtual_machine = get_object_or_404(VirtualMachine, pk=pk)
-        expired = [
-            a
-            for a in ContractAssignment.objects.filter(
-                virtual_machine=virtual_machine
-            ).select_related(
-                'contract', 'contract__vendor', 'sku', 'sku__manufacturer', 'license'
-            )
-            if a.status == CONTRACT_STATUS_EXPIRED
-        ]
+#     def get(self, request, pk):
+#         virtual_machine = get_object_or_404(VirtualMachine, pk=pk)
+#         expired = [
+#             a
+#             for a in ContractAssignment.objects.filter(
+#                 virtual_machine=virtual_machine
+#             ).select_related(
+#                 'contract', 'contract__vendor', 'sku', 'sku__manufacturer', 'license'
+#             )
+#             if a.status == CONTRACT_STATUS_EXPIRED
+#         ]
 
-        return render(
-            request,
-            'netbox_contracts/contract_list.html',
-            {
-                'assignments': expired,
-            },
-        )
+#         return render(
+#             request,
+#             'netbox_contracts/contract_list.html',
+#             {
+#                 'assignments': expired,
+#             },
+#         )

@@ -363,16 +363,17 @@ class ContractAssignmentForm(NetBoxModelForm):
         queryset=None, 
         label=_('Object')
     )
-    fe_vendor = DynamicModelChoiceField(
+    fe = DynamicModelChoiceField(
         label=_('FE Vendor'),
         queryset=Provider.objects.all(),
+        required=False,
     ) 
-    fe_vendor_account = DynamicModelChoiceField(
+    fe_account = DynamicModelChoiceField(
         label=_('FE Vendor account'),
         queryset=ProviderAccount.objects.all(),
         required=False,
         query_params={
-            'provider_id': '$fe_vendor',
+            'provider_id': '$fe',
         }
     )
     
@@ -410,8 +411,8 @@ class ContractAssignmentForm(NetBoxModelForm):
             'yrc',
             'nrc',
             'sla',
-            'fe_vendor',
-            'fe_vendor_account',
+            'fe',
+            'fe_account',
             'tags'
         ]
 
@@ -444,21 +445,21 @@ class ContractAssignmentFilterForm(NetBoxModelFilterSetForm):
             'provider_id': '$provider',
         }
     )
-    fe_vendor = DynamicModelChoiceField(
+    fe = DynamicModelChoiceField(
         queryset=Provider.objects.all(),
         required=False,
         selector=True,
         label=_('FE Vendor'),
         help_text=_('Filter by FE Vendor'),
     )
-    fe_vendor_account = DynamicModelChoiceField(
+    fe_account = DynamicModelChoiceField(
         queryset=ProviderAccount.objects.all(),
         required=False,
         selector=True,
         label=_('FE Vendor Account'),
         help_text=_('Filter by FE Vendor Account'),
         query_params={
-            'provider_id': '$fe_vendor',
+            'provider_id': '$fe',
         }
     )
 
