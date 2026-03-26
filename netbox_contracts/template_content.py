@@ -14,7 +14,7 @@ class ObjectContractAssignments(PluginTemplateExtension):
         object_type = ContentType.objects.get_for_model(object)
 
         contract_assignments = ContractAssignment.objects.filter(
-            content_type__pk=object_type.id, object_id=object.id
+            object_type__pk=object_type.id, object_id=object.id
         )
         assignments_table = tables.ContractAssignmentObjectTable(contract_assignments)
         assignments_table.configure(self.context['request'])

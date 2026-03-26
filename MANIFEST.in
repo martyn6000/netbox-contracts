@@ -9,5 +9,5 @@ recursive-exclude * *.py[co]
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
 
 
-graft netbox_contract/templates
-graft netbox_contract/templates/netbox_contract
+graft netbox_contracts/templates
+graft netbox_contracts/templates/netbox_contracts

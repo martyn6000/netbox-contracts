@@ -1,6 +1,5 @@
 from netbox.plugins import PluginConfig
 
-
 class ContractsConfig(PluginConfig):
     name = 'netbox_contracts'
     verbose_name = 'SCB Netbox contract'

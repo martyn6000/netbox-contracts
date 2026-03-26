@@ -54,7 +54,7 @@ class CustomFieldsMixin:
 
         self._append_customfield_fields()
 
-    def _get_content_type(self):
+    def _get_object_type(self):
         """
         Return the ObjectType of the form's model.
         """
@@ -64,10 +64,10 @@ class CustomFieldsMixin:
             ))
         return ObjectType.objects.get_for_model(self.model)
 
-    def _get_custom_fields(self, content_type):
+    def _get_custom_fields(self, object_type):
         # Return only custom fields that are not hidden from the UI
         return [
-            cf for cf in CustomField.objects.get_for_model(content_type.model_class())
+            cf for cf in CustomField.objects.get_for_model(object_type.model_class())
             if cf.ui_editable != CustomFieldUIEditableChoices.HIDDEN
         ]
 
@@ -78,7 +78,7 @@ class CustomFieldsMixin:
         """
         Append form fields for all CustomFields assigned to this object type.
         """
-        for customfield in self._get_custom_fields(self._get_content_type()):
+        for customfield in self._get_custom_fields(self._get_object_type()):
             field_name = f'cf_{customfield.name}'
             self.fields[field_name] = self._get_form_field(customfield)
 

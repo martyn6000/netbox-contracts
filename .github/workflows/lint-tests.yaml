@@ -89,4 +89,4 @@ jobs:
       - name: Run tests
         working-directory: netbox
         run: |
-          python netbox/manage.py test netbox_contract.tests --keepdb
+          python netbox/manage.py test netbox_contracts.tests --keepdb

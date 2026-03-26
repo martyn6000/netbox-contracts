@@ -1,48 +1,33 @@
 from django import forms
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils.translation import gettext_lazy as _
 from netbox.forms import (
     NetBoxModelBulkEditForm,
     NetBoxModelFilterSetForm,
     NetBoxModelForm,
     NetBoxModelImportForm,
-    PrimaryModelForm,
 )
-from tenancy.forms import ContactModelFilterForm, TenancyFilterForm
-from tenancy.models import Tenant
 from circuits.models import Provider, ProviderAccount
-from utilities.forms import BOOLEAN_WITH_BLANK_CHOICES, get_field_value
 from utilities.forms.fields import (
     ColorField,
     CommentField,
     ContentTypeChoiceField,
-    CSVChoiceField,
     CSVContentTypeField,
     CSVModelChoiceField,
     DynamicModelChoiceField,
-    DynamicModelMultipleChoiceField,
-    SlugField,
     TagFilterField,
 )
-from utilities.forms.rendering import FieldSet, InlineFields
 from utilities.forms.widgets import DatePicker, HTMXSelect
-from utilities.templatetags.builtins.filters import bettertitle
-
-from .constants import ASSIGNEMENT_MODELS, SERVICE_PROVIDER_MODELS, SERVICE_PROVIDER_TYPES
+from .constants import ASSIGNEMENT_MODELS
 from .models import (
     Contract,
     ContractAssignment,
     ContractType,
     CurrencyChoices,
-    InternalEntityChoices,
     ServiceLevelAgreement,
-    StatusChoices,
 )
-from ipam.models import ASN
 from netbox.forms.mixins import OwnerMixin, OwnerFilterMixin
-from dcim.models import Location, Region, Site, SiteGroup
 
 plugin_settings = settings.PLUGINS_CONFIG['netbox_contracts']
 
@@ -65,16 +50,6 @@ class PrimaryModelFilterSetForm(OwnerFilterMixin, NetBoxModelFilterSetForm):
 
 # Contract
 class ContractForm(NetBoxModelForm):
-    comments = CommentField(label=_('Comments'))
-
-    external_party_object_type = ContentTypeChoiceField(
-        queryset=ContentType.objects.all(),
-        limit_choices_to=SERVICE_PROVIDER_MODELS,
-        widget=HTMXSelect(),
-        label=_('External party object type'),
-    )
-    external_party_object = forms.ModelChoiceField(queryset=None, label=_('External party object'))
-    tenant = DynamicModelChoiceField(queryset=Tenant.objects.all(), required=False, selector=True, label=_('Tenant'))
     parent = DynamicModelChoiceField(
         queryset=Contract.objects.all(),
         required=False,
@@ -85,26 +60,34 @@ class ContractForm(NetBoxModelForm):
         queryset=ContractType.objects.all(), required=False, selector=True, label=_('Contract type')
     )
 
+    provider = DynamicModelChoiceField(
+        label=_('Provider'),
+        queryset=Provider.objects.all(),
+        selector=True,
+        quick_add=True
+    )
+    
+    provider_account = DynamicModelChoiceField(
+        label=_('Provider account'),
+        queryset=ProviderAccount.objects.all(),
+        required=False,
+        query_params={
+            'provider_id': '$provider',
+        }
+    )
+    comments = CommentField()
+
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial', None)
         super().__init__(*args, **kwargs)
-
-        # Initialise fields settings
-        mandatory_fields = plugin_settings.get('mandatory_contract_fields')
-        for field in mandatory_fields:
-            self.fields[field].required = True
-        hidden_fields = plugin_settings.get('hidden_contract_fields')
-        for field in hidden_fields:
-            if not self.fields[field].required:
-                self.fields[field].widget = forms.HiddenInput()
 
     class Meta:
         model = Contract
         fields = (
             'name',
             'contract_type',
-            'tenant',
-            'status',
+            'provider',
+            'provider_account',
             'start_date',
             'end_date',
             'notice_period',
@@ -122,64 +105,49 @@ class ContractForm(NetBoxModelForm):
             'end_date': DatePicker(),
         }
 
-    def clean(self):
-        super().clean()
-
-        if self.cleaned_data['mrc'] and self.cleaned_data['yrc']:
-            raise ValidationError('you should set monthly OR yearly recuring costs not both')
-
-class ContractFilterForm(ContactModelFilterForm, TenancyFilterForm, NetBoxModelFilterSetForm):
+class ContractFilterForm(NetBoxModelFilterSetForm):
     model = Contract
-
     contract_type = DynamicModelChoiceField(
         queryset=ContractType.objects.all(),
         required=False,
         selector=True,
         label=_('Contract type'),
     )
-
-    provider_id = DynamicModelChoiceField(
+    provider = DynamicModelChoiceField(
         queryset=Provider.objects.all(),
         required=False,
         selector=True,
-        label=_('Circuit Provider'),
-        help_text=_('Filter by Circuit Provider'),
+        label=_('Provider'),
+        help_text=_('Filter by Provider'),
     )
-
-    external_reference = forms.CharField(required=False, label=_('External reference'))
-
-    internal_party = forms.ChoiceField(
-        choices=[('', '-----')] + list(InternalEntityChoices),
+    provider_account = DynamicModelChoiceField(
+        queryset=ProviderAccount.objects.all(),
         required=False,
-        label=_('Internal party')
+        selector=True,
+        label=_('Provider Account'),
+        help_text=_('Filter by Provider Account'),
+        query_params={
+            'provider_id': '$provider',
+        }
     )
-
-    status = forms.ChoiceField(choices=StatusChoices, required=False, label=_('Status'))
-
     currency = forms.ChoiceField(
         choices=[('', '-----')] + list(CurrencyChoices),
         required=False,
         label=_('Currency')
     )
-
     parent = DynamicModelChoiceField(
         queryset=Contract.objects.all(),
         required=False,
         selector=True,
         label=_('Parent'),
     )
-
     tag = TagFilterField(model)
 
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.get('initial', None)
+        super().__init__(*args, **kwargs)
+
 class ContractCSVForm(NetBoxModelImportForm):
-    tenant = CSVModelChoiceField(
-        queryset=Tenant.objects.all(),
-        to_field_name='name',
-        help_text='Tenant name',
-        required=False,
-        label=_('Tenant'),
-    )
-    status = CSVChoiceField(choices=StatusChoices, help_text='Contract status', label=_('Status'))
     parent = CSVModelChoiceField(
         queryset=Contract.objects.all(),
         to_field_name='name',
@@ -200,15 +168,13 @@ class ContractCSVForm(NetBoxModelImportForm):
         fields = [
             'name',
             'contract_type',
-            'tenant',
-            'status',
+            'provider',
             'start_date',
             'end_date',
             'currency',
             'yrc',
             'nrc',
             'documents',
-            'comments',
             'parent',
         ]
 
@@ -220,10 +186,6 @@ class ContractBulkEditForm(NetBoxModelBulkEditForm):
         selector=True,
         label=_('Contract Type')
     )
-
-    external_reference = forms.CharField(max_length=100, required=False, label=_('External reference'))
-    internal_party = forms.ChoiceField(choices=InternalEntityChoices, required=False, label=_('Internal party'))
-    tenant = DynamicModelChoiceField(queryset=Tenant.objects.all(), required=False, selector=True, label=_('Tenant'))
     comments = CommentField(required=False, label=_('Comments'))
     parent = DynamicModelChoiceField(
         queryset=Contract.objects.all(),
@@ -237,17 +199,6 @@ class ContractBulkEditForm(NetBoxModelBulkEditForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        if external_party_object_type_id := get_field_value(self, 'external_party_object_type'):
-            try:
-                external_party_object_type = ContentType.objects.get(pk=external_party_object_type_id)
-                model = external_party_object_type.model_class()
-                self.fields['external_party_object'].queryset = model.objects.all()
-                self.fields['external_party_object'].widget.attrs['selector'] = model._meta.label_lower
-                self.fields['external_party_object'].disabled = False
-                self.fields['external_party_object'].label = _(bettertitle(model._meta.verbose_name))
-            except ObjectDoesNotExist:
-                pass
 
 # ContractType
 class ContractTypeForm(NetBoxModelForm):
@@ -283,143 +234,190 @@ class ContractTypeFilterForm(NetBoxModelFilterSetForm):
     description = CommentField(label=_('Description'))
 
 # Circuit Provider forms
-class ProviderForm(PrimaryModelForm):
-    slug = SlugField()
-    asns = DynamicModelMultipleChoiceField(
-        queryset=ASN.objects.all(),
-        label=_('ASNs'),
-        required=False
-    )
+# class ProviderForm(PrimaryModelForm):
+#     slug = SlugField()
+#     asns = DynamicModelMultipleChoiceField(
+#         queryset=ASN.objects.all(),
+#         label=_('ASNs'),
+#         required=False
+#     )
 
-    fieldsets = (
-        FieldSet('name', 'slug', 'asns', 'description', 'tags'),
-    )
+#     fieldsets = (
+#         FieldSet('name', 'slug', 'asns', 'description', 'tags'),
+#     )
 
-    class Meta:
-        model = Provider
-        fields = [
-            'name', 'slug', 'asns', 'description', 'owner', 'comments', 'tags',
-        ]
+#     class Meta:
+#         model = Provider
+#         fields = [
+#             'name', 'slug', 'asns', 'description', 'owner', 'comments', 'tags',
+#         ]
 
-class ProviderAccountForm(PrimaryModelForm):
-    provider = DynamicModelChoiceField(
-        label=_('Provider'),
-        queryset=Provider.objects.all(),
-        selector=True,
-        quick_add=True
-    )
+# class ProviderAccountForm(PrimaryModelForm):
+#     provider = DynamicModelChoiceField(
+#         label=_('Provider'),
+#         queryset=Provider.objects.all(),
+#         selector=True,
+#         quick_add=True
+#     )
 
-    class Meta:
-        model = ProviderAccount
-        fields = [
-            'provider', 'name', 'account', 'description', 'owner', 'comments', 'tags',
-        ]
+#     class Meta:
+#         model = ProviderAccount
+#         fields = [
+#             'provider', 'name', 'account', 'description', 'owner', 'comments', 'tags',
+#         ]
 
-class ProviderFilterForm(ContactModelFilterForm, PrimaryModelFilterSetForm):
-    model = Provider
-    fieldsets = (
-        FieldSet('q', 'filter_id', 'tag'),
-        FieldSet('region_id', 'site_group_id', 'site_id', name=_('Location')),
-        FieldSet('asn_id', name=_('ASN')),
-        FieldSet('owner_group_id', 'owner_id', name=_('Ownership')),
-        FieldSet('contact', 'contact_role', 'contact_group', name=_('Contacts')),
-    )
-    region_id = DynamicModelMultipleChoiceField(
-        queryset=Region.objects.all(),
-        required=False,
-        label=_('Region')
-    )
-    site_group_id = DynamicModelMultipleChoiceField(
-        queryset=SiteGroup.objects.all(),
-        required=False,
-        label=_('Site group')
-    )
-    site_id = DynamicModelMultipleChoiceField(
-        queryset=Site.objects.all(),
-        required=False,
-        query_params={
-            'region_id': '$region_id',
-            'site_group_id': '$site_group_id',
-        },
-        label=_('Site')
-    )
-    asn_id = DynamicModelMultipleChoiceField(
-        queryset=ASN.objects.all(),
-        required=False,
-        label=_('ASNs')
-    )
-    tag = TagFilterField(model)
+# class ProviderFilterForm(ContactModelFilterForm, PrimaryModelFilterSetForm):
+#     model = Provider
+#     fieldsets = (
+#         FieldSet('q', 'filter_id', 'tag'),
+#         FieldSet('region_id', 'site_group_id', 'site_id', name=_('Location')),
+#         FieldSet('asn_id', name=_('ASN')),
+#         FieldSet('owner_group_id', 'owner_id', name=_('Ownership')),
+#         FieldSet('contact', 'contact_role', 'contact_group', name=_('Contacts')),
+#     )
+#     region_id = DynamicModelMultipleChoiceField(
+#         queryset=Region.objects.all(),
+#         required=False,
+#         label=_('Region')
+#     )
+#     site_group_id = DynamicModelMultipleChoiceField(
+#         queryset=SiteGroup.objects.all(),
+#         required=False,
+#         label=_('Site group')
+#     )
+#     site_id = DynamicModelMultipleChoiceField(
+#         queryset=Site.objects.all(),
+#         required=False,
+#         query_params={
+#             'region_id': '$region_id',
+#             'site_group_id': '$site_group_id',
+#         },
+#         label=_('Site')
+#     )
+#     asn_id = DynamicModelMultipleChoiceField(
+#         queryset=ASN.objects.all(),
+#         required=False,
+#         label=_('ASNs')
+#     )
+#     tag = TagFilterField(model)
 
-class ProviderAccountFilterForm(ContactModelFilterForm, PrimaryModelFilterSetForm):
-    model = ProviderAccount
-    fieldsets = (
-        FieldSet('q', 'filter_id', 'tag'),
-        FieldSet('provider_id', 'account', name=_('Attributes')),
-        FieldSet('owner_group_id', 'owner_id', name=_('Ownership')),
-        FieldSet('contact', 'contact_role', 'contact_group', name=_('Contacts')),
-    )
-    provider_id = DynamicModelMultipleChoiceField(
-        queryset=Provider.objects.all(),
-        required=False,
-        label=_('Provider')
-    )
-    account = forms.CharField(
-        label=_('Account'),
-        required=False
-    )
-    tag = TagFilterField(model)
+# class ProviderAccountFilterForm(ContactModelFilterForm, PrimaryModelFilterSetForm):
+#     model = ProviderAccount
+#     fieldsets = (
+#         FieldSet('q', 'filter_id', 'tag'),
+#         FieldSet('provider_id', 'account', name=_('Attributes')),
+#         FieldSet('owner_group_id', 'owner_id', name=_('Ownership')),
+#         FieldSet('contact', 'contact_role', 'contact_group', name=_('Contacts')),
+#     )
+#     provider_id = DynamicModelMultipleChoiceField(
+#         queryset=Provider.objects.all(),
+#         required=False,
+#         label=_('Provider')
+#     )
+#     account = forms.CharField(
+#         label=_('Account'),
+#         required=False
+#     )
+#     tag = TagFilterField(model)
 
-class ProviderBulkEditForm(PrimaryModelBulkEditForm):
-    asns = DynamicModelMultipleChoiceField(
-        queryset=ASN.objects.all(),
-        label=_('ASNs'),
-        required=False
-    )
+# class ProviderBulkEditForm(PrimaryModelBulkEditForm):
+#     asns = DynamicModelMultipleChoiceField(
+#         queryset=ASN.objects.all(),
+#         label=_('ASNs'),
+#         required=False
+#     )
 
-    model = Provider
-    fieldsets = (
-        FieldSet('asns', 'description'),
-    )
-    nullable_fields = (
-        'asns', 'description', 'comments',
-    )
+#     model = Provider
+#     fieldsets = (
+#         FieldSet('asns', 'description'),
+#     )
+#     nullable_fields = (
+#         'asns', 'description', 'comments',
+#     )
 
-class ProviderAccountBulkEditForm(PrimaryModelBulkEditForm):
-    provider = DynamicModelChoiceField(
-        label=_('Provider'),
-        queryset=Provider.objects.all(),
-        required=False
-    )
+# class ProviderAccountBulkEditForm(PrimaryModelBulkEditForm):
+#     provider = DynamicModelChoiceField(
+#         label=_('Provider'),
+#         queryset=Provider.objects.all(),
+#         required=False
+#     )
 
-    model = ProviderAccount
-    fieldsets = (
-        FieldSet('provider', 'description'),
-    )
-    nullable_fields = (
-        'description', 'comments',
-    )
+#     model = ProviderAccount
+#     fieldsets = (
+#         FieldSet('provider', 'description'),
+#     )
+#     nullable_fields = (
+#         'description', 'comments',
+#     )
 
 # ContractAssignment
 class ContractAssignmentForm(NetBoxModelForm):
 
-    content_type = ContentTypeChoiceField(
+    object_type = ContentTypeChoiceField(
         queryset=ContentType.objects.all(),
         limit_choices_to=ASSIGNEMENT_MODELS,
-        label=_('object type'),
+        widget=HTMXSelect(),
+        label=_('Object Type'),
     )
+    object = forms.ModelChoiceField(
+        queryset=None, 
+        label=_('Object')
+    )
+    fe_vendor = DynamicModelChoiceField(
+        label=_('FE Vendor'),
+        queryset=Provider.objects.all(),
+    ) 
+    fe_vendor_account = DynamicModelChoiceField(
+        label=_('FE Vendor account'),
+        queryset=ProviderAccount.objects.all(),
+        required=False,
+        query_params={
+            'provider_id': '$fe_vendor',
+        }
+    )
+    
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.get('initial', None)
+        super().__init__(*args, **kwargs)
 
-    contract = DynamicModelChoiceField(
-        queryset=Contract.objects.all(),
-        selector=True,
-        label=_('Contract'))
+        # Initialize the object gfk
+        if initial and 'object_type' in initial:
+            object_type = ContentType.objects.get_for_id(initial['object_type'])
+            object_class = object_type.model_class()
+            self.fields['object'].queryset = object_class.objects.all()
+            if (
+                self.instance.object_type
+                and self.instance.object_type.id == object_type.id
+            ):
+                self.fields['object'].initial = self.instance.object
+            else:
+                self.fields['object'].initial = None
+        elif self.instance.object_type:
+            object_class = self.instance.object_type.model_class()
+            self.fields['object'].queryset = object_class.objects.all()
+            self.fields['object'].initial = self.instance.object
+        else:
+            self.fields['object'].queryset = Provider.objects.all()
+            self.fields['object'].initial = None
 
     class Meta:
         model = ContractAssignment
-        fields = ['content_type', 'contract', 'tags']
-        # widgets = {
-        #     'content_type': forms.HiddenInput(),
-        #     'object_id': forms.HiddenInput(),
-        # }
+        fields = [
+            'contract', 
+            'end_date',
+            'object_type',
+            'object', 
+            'yrc',
+            'nrc',
+            'sla',
+            'fe_vendor',
+            'fe_vendor_account',
+            'tags'
+        ]
+
+        widgets = {
+            'end_date': DatePicker(),
+        }
 
 class ContractAssignmentFilterForm(NetBoxModelFilterSetForm):
     model = ContractAssignment
@@ -429,9 +427,43 @@ class ContractAssignmentFilterForm(NetBoxModelFilterSetForm):
         selector=True,
         label=_('Contract'),
     )
+    provider = DynamicModelChoiceField(
+        queryset=Provider.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Provider'),
+        help_text=_('Filter by Provider'),
+    )
+    provider_account = DynamicModelChoiceField(
+        queryset=ProviderAccount.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Provider Account'),
+        help_text=_('Filter by Provider Account'),
+        query_params={
+            'provider_id': '$provider',
+        }
+    )
+    fe_vendor = DynamicModelChoiceField(
+        queryset=Provider.objects.all(),
+        required=False,
+        selector=True,
+        label=_('FE Vendor'),
+        help_text=_('Filter by FE Vendor'),
+    )
+    fe_vendor_account = DynamicModelChoiceField(
+        queryset=ProviderAccount.objects.all(),
+        required=False,
+        selector=True,
+        label=_('FE Vendor Account'),
+        help_text=_('Filter by FE Vendor Account'),
+        query_params={
+            'provider_id': '$fe_vendor',
+        }
+    )
 
 class ContractAssignmentImportForm(NetBoxModelImportForm):
-    content_type = CSVContentTypeField(
+    object_type = CSVContentTypeField(
         queryset=ContentType.objects.all(),
         limit_choices_to=ASSIGNEMENT_MODELS,
         help_text='Content Type in the form <app>.<model>',
@@ -445,7 +477,7 @@ class ContractAssignmentImportForm(NetBoxModelImportForm):
 
     class Meta:
         model = ContractAssignment
-        fields = ['content_type', 'contract', 'tags']
+        fields = ['object_type', 'contract', 'tags']
 
 class ContractAssignmentBulkEditForm(NetBoxModelBulkEditForm):
     contract = DynamicModelChoiceField(
@@ -458,25 +490,11 @@ class ContractAssignmentBulkEditForm(NetBoxModelBulkEditForm):
 
 # Service Level Agreement
 class ServiceLevelAgreementForm(NetBoxModelForm):
-
-    content_type = ContentTypeChoiceField(
-        queryset=ContentType.objects.all(),
-        limit_choices_to=ASSIGNEMENT_MODELS,
-        label=_('object type'),
-    )
-
-    contract = DynamicModelChoiceField(
-        queryset=Contract.objects.all(),
-        selector=True,
-        label=_('Service Level Agreement'))
+    comments = CommentField()
 
     class Meta:
         model = ServiceLevelAgreement
-        fields = ['content_type', 'contract', 'tags']
-        # widgets = {
-        #     'content_type': forms.HiddenInput(),
-        #     'object_id': forms.HiddenInput(),
-        # }
+        fields = ['name', 'description', 'comments', 'tags']
 
 class ServiceLevelAgreementFilterForm(NetBoxModelFilterSetForm):
     model = ContractAssignment
@@ -488,7 +506,7 @@ class ServiceLevelAgreementFilterForm(NetBoxModelFilterSetForm):
     )
 
 class ServiceLevelAgreementImportForm(NetBoxModelImportForm):
-    content_type = CSVContentTypeField(
+    object_type = CSVContentTypeField(
         queryset=ContentType.objects.all(),
         limit_choices_to=ASSIGNEMENT_MODELS,
         help_text='Content Type in the form <app>.<model>',
@@ -502,7 +520,7 @@ class ServiceLevelAgreementImportForm(NetBoxModelImportForm):
 
     class Meta:
         model = ServiceLevelAgreement
-        fields = ['content_type', 'contract', 'tags']
+        fields = ['object_type', 'contract', 'tags']
 
 class ServiceLevelAgreementBulkEditForm(NetBoxModelBulkEditForm):
     contract = DynamicModelChoiceField(

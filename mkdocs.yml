@@ -1,13 +1,10 @@
-site_name: Netbox-contract NetBox Plugin
-site_url: https://github.com/mlebreuil/netbox-contract
-repo_url: https://github.com/mlebreuil/netbox-contract
-repo_name: netbox-contract
+site_name: Netbox-contracts NetBox Plugin
+site_url: https://github.com/martyn6000/netbox-contracts
+repo_url: https://github.com/martyn6000/netbox-contracts
+repo_name: netbox-contracts
 nav:
   - Home: index.md
   - Contract: contract.md
-  - Invoice: invoice.md
-  - Invoice line: invoice_line.md
-  - Accounting dimensions: accounting_dimensions.md
   - Contributing: contributing.md
   - Changelog: changelog.md
 theme:

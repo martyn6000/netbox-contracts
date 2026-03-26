@@ -1,0 +1,107 @@
+{% extends 'generic/object.html' %}
+{% load plugins %}
+{% load render_table from django_tables2 %}
+{% load i18n %}
+{% block breadcrumbs %}
+  {{ block.super }}
+  <li class="breadcrumb-item"><a href="{% url 'plugins:netbox_contracts:contract_list' %}?external_party={{ object.external_party.pk }}">{{ object.external_party }}</a></li>
+{% endblock %}
+{% if perms.netbox_contracts.add_contractassignment %}
+  {% block extra_controls %}
+    <a href="{% url 'plugins:netbox_contracts:contractassignment_add' %}?contract={{ object.pk }}"
+      class="btn btn-primary">
+      <span class="mdi mdi-plus-thick" aria-hidden="true"></span> Add Assignment
+    </a>
+  {% endblock %}
+{% endif %}
+{% block content %}
+  <div class="row mb-3">
+    <div class="col col-md-6">
+      <div class="card">
+        <h5 class="card-header">{% trans "Contract" %}</h5>
+          <table class="table table-hover attr-table">
+            <tr>
+              <th scope="row">{% trans "Name" %}</th>
+              <td>{{ object.name }}</td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "Contract type" %}</th>
+              <td>
+                <a href="{{ object.contract_type.get_absolute_url }}">{{ object.contract_type.name }}</a>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "Status" %}</th>
+              <td>{% badge object.get_status_display bg_color=object.get_status_color %}</td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "Provider" %}</th>
+              <td>
+                <a href="{{ object.provider.get_absolute_url }}">{{ object.provider }}</a>
+              </td>
+            </tr>
+            {% if not 'start_date' in hidden_fields %}
+            <tr>
+              <th scope="row">{% trans "Start date" %}</th>
+              <td>{{ object.start_date }}</td>
+            </tr>
+            {% endif %}
+            {% if not 'end_date' in hidden_fields %}
+            <tr>
+              <th scope="row">{% trans "End date" %}</th>
+              <td>{{ object.end_date }}</td>
+            </tr>
+            {% endif %}
+            {% if not 'notice_period' in hidden_fields %}
+            <tr>
+              <th scope="row">{% trans "Notice period" %}</th>
+              <td>{{ object.notice_period }} {% trans "days" %}</td>
+            </tr>
+            {% endif %}
+            <tr>
+              <th scope="row">{% trans "Currency" %}</th>
+              <td>{{ object.get_currency_display  }}</td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "Yearly recuring costs" %}</th>
+              <td>{{ object.yrc }}</td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "Non recuring costs" %}</th>
+              <td>{{ object.nrc }}</td>
+            </tr>
+            {% if not 'parent' in hidden_fields %}
+            <tr>
+              <th scope="row">{% trans "Parent" %}</th>
+              <td>
+                <a href="{{ object.parent.get_absolute_url }}">{{ object.parent.name }}</a>
+              </td>
+            </tr>
+            {% endif %}
+            {% if object.documents %}
+            <tr>
+              <th scope="row">{% trans "Documents" %}</th>
+                <td>
+                  <a href="{{ object.documents }}" target="_blank">{% trans "Documents" %}</a>
+                </td>
+            </tr>
+            {% endif %}
+          </table>
+      </div>
+      {% include 'inc/panels/custom_fields.html' %}
+    </div>
+  </div>
+  {% if childs_table %}
+  <div class="row">
+    <div class="col col-md-12">
+      <div class="card">
+        <h5 class="card-header">{% trans "childs" %}</h5>
+          {% render_table childs_table %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% if perms.netbox_contracts.view_invoice %}
+  {% endif %}
+{% plugin_right_page object %}
+{% endblock content %}

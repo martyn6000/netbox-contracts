@@ -15,29 +15,29 @@ DATABASE = {
 }
 
 FIELD_CHOICES = {
-    'netbox_contract.Contract.internal_party': (
+    'netbox_contracts.Contract.internal_party': (
         ('default', 'Default entity', 'green'),
         ('entity1', 'Entity 1', 'green'),
         ('entity2', 'Entity 2', 'yellow'),
     ),
-    'netbox_contract.Contract.currency': (
+    'netbox_contracts.Contract.currency': (
         ('usd', 'USD'),
         ('eur', 'EUR'),
         ('chf', 'CHF'),
         ('pln', 'PLN'),
     ),
-    'netbox_contract.Contract.status': (
+    'netbox_contracts.Contract.status': (
         ('active', 'Active', 'green'),
         ('canceled', 'Canceled', 'red'),
     ),
 }
 
 PLUGINS = [
-    'netbox_contract',
+    'netbox_contracts',
 ]
 
 PLUGINS_CONFIG = {
-    'netbox_contract': {
+    'netbox_contracts': {
         'top_level_menu': True,
         'mandatory_contract_fields': [],
         'hidden_contract_fields': [],

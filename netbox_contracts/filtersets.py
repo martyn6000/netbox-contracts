@@ -3,17 +3,16 @@ from django import forms
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from netbox.filtersets import NetBoxModelFilterSet, PrimaryModelFilterSet
-from tenancy.filtersets import ContactModelFilterSet, TenancyFilterSet
+from tenancy.filtersets import ContactModelFilterSet
 from circuits.models import Provider, ProviderAccount
-from dcim.models import Interface, Location, Region, Site, SiteGroup
+from virtualization.models import VirtualMachine
+from dcim.models import Region, Site, SiteGroup
 from ipam.models import ASN
 from .models import (
     Contract,
     ContractAssignment,
     ContractType,
     CurrencyChoices,
-    InternalEntityChoices,
-    StatusChoices,
     ServiceLevelAgreement,
 )
 from utilities.filters import (
@@ -31,8 +30,7 @@ __all__ = (
     'ProviderFilterSet',
 )
 
-class ContractFilterSet(ContactModelFilterSet, NetBoxModelFilterSet):
-    status = django_filters.MultipleChoiceFilter(choices=StatusChoices, null_value=None)
+class ContractFilterSet(NetBoxModelFilterSet):
     currency = django_filters.MultipleChoiceFilter(
         choices=CurrencyChoices, null_value=None
     )
@@ -45,34 +43,9 @@ class ContractFilterSet(ContactModelFilterSet, NetBoxModelFilterSet):
         fields = (
             'id',
             'name',
-            'status',
             'currency',
             'contract_type',
             'parent',
-        )
-
-    def search(self, queryset, name, value):
-        return queryset.filter(
-            Q(name__icontains=value)
-            | Q(external_reference__icontains=value)
-            | Q(comments__icontains=value),
-            Q(status__iexact='Active'),
-        )
-
-    def filter_by_service_provider(self, queryset, name, value):
-        if not value:
-            return queryset
-        return queryset.filter(
-            external_party_object_id=value,
-            external_party_object_type=ContentType.objects.get_for_model(ServiceProvider)
-        )
-
-    def filter_by_circuit_provider(self, queryset, name, value):
-        if not value:
-            return queryset
-        return queryset.filter(
-            external_party_object_id=value,
-            external_party_object_type=ContentType.objects.get_for_model(Provider)
         )
 
 class ContractTypeFilterSet(NetBoxModelFilterSet):
@@ -82,14 +55,6 @@ class ContractTypeFilterSet(NetBoxModelFilterSet):
 
     def search(self, queryset, name, value):
         return queryset.filter(name__icontains=value)
-
-class ContractAssignmentFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = ContractAssignment
-        fields = ('id', 'contract')
-
-    def search(self, queryset, name, value):
-        return queryset.filter(Q(contract__name__icontains=value))
 
 @register_filterset
 class ProviderFilterSet(PrimaryModelFilterSet, ContactModelFilterSet):
@@ -191,3 +156,12 @@ class ServiceLevelAgreementFilterSet(NetBoxModelFilterSet):
 
     def search(self, queryset, name, value):
         return queryset.filter(name__icontains=value)
+
+class ContractAssignmentFilterSet(NetBoxModelFilterSet):
+
+    class Meta:
+        model = ContractAssignment
+        fields = ('id', 'contract', 'provider', 'fe_vendor', 'object_id')
+
+    def search(self, queryset, name, value):
+        return queryset.filter(Q(contract__name__icontains=value))

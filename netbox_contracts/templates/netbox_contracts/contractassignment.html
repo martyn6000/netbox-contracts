@@ -1,0 +1,46 @@
+{% extends 'generic/object.html' %}
+{% load i18n %}
+{% block content %}
+  <div class="row mb-3">
+    <div class="col col-md-6">
+      <div class="card">
+        <h5 class="card-header">{% trans "Contract assignment" %}</h5>
+          <table class="table table-hover attr-table">
+            <tr>
+              <th scope="row">{% trans "Object Type" %}</th>
+              <td>{{ object.object_type }}</td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "Object" %}</th>
+              <td><a href="{{ object.object.get_absolute_url }}">{{ object.object }}</a></td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "Contract" %}</th>
+              <td><a href="{{ object.contract.get_absolute_url }}">{{ object.contract.name }}</a></td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "End Date" %}</th>
+              <td><a href="{{ object.contract.get_absolute_url }}">{{ object.end_date }}</a></td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "Yearly Recurring Cost" %}</th>
+              <td><a href="{{ object.contract.get_absolute_url }}">{{ object.yrc }}</a></td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "Non-Recurring Costs" %}</th>
+              <td><a href="{{ object.contract.get_absolute_url }}">{{ object.nrc }}</a></td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "SLA" %}</th>
+              <td><a href="{{ object.contract.get_absolute_url }}">{{ object.sla }}</a></td>
+            </tr>
+            <tr>
+              <th scope="row">{% trans "Onsite FE" %}</th>
+              <td><a href="{{ object.contract.get_absolute_url }}">{{ object.fe_vendor }}</a></td>
+            </tr>            
+          </table>
+      </div>
+      {% include 'inc/panels/tags.html' %}
+    </div>
+  </div>
+{% endblock content %}

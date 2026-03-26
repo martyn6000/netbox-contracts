@@ -6,88 +6,98 @@ plugin_settings = settings.PLUGINS_CONFIG['netbox_contracts']
 
 contract_buttons = [
     PluginMenuButton(
-        link='plugins:netbox_contract:contract_add',
+        link='plugins:netbox_contracts:contract_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
-        permissions=['netbox_contract.add_contract'],
+        permissions=['netbox_contracts.add_contract'],
     )
 ]
 
 contracttype_buttons = [
     PluginMenuButton(
-        link='plugins:netbox_contract:contracttype_add',
+        link='plugins:netbox_contracts:contracttype_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
-        permissions=['netbox_contract.add_contract'],
+        permissions=['netbox_contracts.add_contract'],
     )
 ]
 
 provider_buttons = [
     PluginMenuButton(
-        link='plugins:netbox_contract:provider_add',
+        link='plugins:netbox_contracts:provider_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
-        permissions=['netbox_contract.add_provider'],
+        permissions=['netbox_contracts.add_provider'],
     )
 ]
 
 servicelevelagreement_buttons = [
     PluginMenuButton(
-        link='plugins:netbox_contract:servicelevelagreement_add',
+        link='plugins:netbox_contracts:servicelevelagreement_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
-        permissions=['netbox_contract.add_servicelevelagreement'],
+        permissions=['netbox_contracts.add_servicelevelagreement'],
     )
 ]
 
 provideraccount_buttons = [
     PluginMenuButton(
-        link='plugins:netbox_contract:provideraccount_add',
+        link='plugins:netbox_contracts:provideraccount_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
-        permissions=['netbox_contract.add_provideraccount'],
+        permissions=['netbox_contracts.add_provideraccount'],
+    )
+]
+
+contractassingmenttype_buttons = [
+    PluginMenuButton(
+        link='plugins:netbox_contracts:contractassignment_add',
+        title=_('Add'),
+        icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_contractassignment'],
     )
 ]
 
 contract_menu_item = PluginMenuItem(
-    link='plugins:netbox_contract:contract_list',
+    link='plugins:netbox_contracts:contract_list',
     link_text=_('Contracts'),
     buttons=contract_buttons,
-    permissions=['netbox_contract.view_contract'],
+    permissions=['netbox_contracts.view_contract'],
 )
 
 contracttype_menu_item = PluginMenuItem(
-    link='plugins:netbox_contract:contracttype_list',
+    link='plugins:netbox_contracts:contracttype_list',
     link_text=_('Contract type'),
     buttons=contracttype_buttons,
-    permissions=['netbox_contract.view_contract'],
+    permissions=['netbox_contracts.view_contract'],
 )
 
 provider_menu_item = PluginMenuItem(
-    link='plugins:netbox_contract:provider_list',
+    link='plugins:netbox_contracts:provider_list',
     link_text=_('Providers'),
     buttons=provider_buttons,
-    permissions=['netbox_contract.view_provider'],
+    permissions=['netbox_contracts.view_provider'],
 )
 
 provideraccount_menu_item = PluginMenuItem(
-    link='plugins:netbox_contract:provideraccount_list',
+    link='plugins:netbox_contracts:provideraccount_list',
     link_text=_('Provider Accounts'),
     buttons=provideraccount_buttons,
-    permissions=['netbox_contract.view_provideraccount'],
+    permissions=['netbox_contracts.view_provideraccount'],
 )
 
 contract_assignemnt_menu_item = PluginMenuItem(
-    link='plugins:netbox_contract:contractassignment_list',
+    link='plugins:netbox_contracts:contractassignment_list',
     link_text=_('Contracts assignments'),
-    permissions=['netbox_contract.view_contractassignment'],
+    buttons=contractassingmenttype_buttons,
+    permissions=['netbox_contracts.view_contractassignment'],
 )
 
 servicelevelagreement_menu_item = PluginMenuItem(
-    link='plugins:netbox_contract:servicelevelagreement_list',
+    link='plugins:netbox_contracts:servicelevelagreement_list',
     link_text=_('Service Level Agreement'),
-    buttons=contract_buttons,
-    permissions=['netbox_contract.view_servicelevelagreement'],
+    buttons=servicelevelagreement_buttons,
+    permissions=['netbox_contracts.view_servicelevelagreement'],
 )
 
 items = (

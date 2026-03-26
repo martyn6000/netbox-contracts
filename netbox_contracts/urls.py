@@ -5,8 +5,7 @@ from . import models, views
 
 urlpatterns = (
     # Providers
-    path(
-        'providers/',
+    path('providers/',
         include(
             get_model_urls(
                 'circuits',
@@ -15,8 +14,7 @@ urlpatterns = (
             )
         )
     ),
-    path(
-        'providers/<int:pk>/',
+    path('providers/<int:pk>/',
         include(
             get_model_urls(
                 'circuits', 
@@ -25,8 +23,7 @@ urlpatterns = (
         )
     ),
     # Provider Accounts
-    path(
-        'provider-accounts/',
+    path('provider-accounts/',
         include(
             get_model_urls(
                 'circuits',
@@ -35,8 +32,7 @@ urlpatterns = (
             )
         )
     ),
-    path(
-        'provider-accounts/<int:pk>/',
+    path('provider-accounts/<int:pk>/',
         include(
             get_model_urls(
                 'circuits',
@@ -46,130 +42,168 @@ urlpatterns = (
     ),
 
     # Contracts
-    path(
-        'contracts/',
+    path('contracts/',
         views.ContractListView.as_view(),
         name='contract_list'
     ),
-    path(
-        'contracts/add/',
+    path('contracts/add/',
         views.ContractEditView.as_view(),
         name='contract_add'
     ),
-    path(
-        'contracts/import/',
+    path('contracts/import/',
         views.ContractBulkImportView.as_view(),
         name='contract_bulk_import',
     ),
-    path(
-        'contracts/edit/',
+    path('contracts/edit/',
         views.ContractBulkEditView.as_view(),
         name='contract_bulk_edit',
     ),
-    path(
-        'contracts/delete/',
+    path('contracts/delete/',
         views.ContractBulkDeleteView.as_view(),
         name='contract_bulk_delete',
     ),
-    path(
-        'contracts/<int:pk>/',
-        include(get_model_urls('netbox_contract', 'contract')),
+    path('contracts/<int:pk>/',
+        include(get_model_urls('netbox_contracts', 'contract')),
         name='contract',
     ),
-    path(
-        'contracts/<int:pk>/edit/',
+    path('contracts/<int:pk>/edit/',
         views.ContractEditView.as_view(),
         name='contract_edit',
     ),
-    path(
-        'contracts/<int:pk>/delete/',
+    path('contracts/<int:pk>/delete/',
         views.ContractDeleteView.as_view(),
         name='contract_delete',
     ),
-    path(
-        'contracts/<int:pk>/changelog/',
+    path('contracts/<int:pk>/changelog/',
         ObjectChangeLogView.as_view(),
         name='contract_changelog',
         kwargs={'model': models.Contract},
     ),
+    path('contracts/<int:pk>/assignments/',
+        views.ContractAssignmentTabView.as_view(),
+        name='contract_assignment_list',
+    ),
     # Service Level Agreements
     path('servicelevelagreement/', views.ServiceLevelAgreementListView.as_view(), name='servicelevelagreement_list'),
     path('servicelevelagreement/add/', views.ServiceLevelAgreementEditView.as_view(), name='servicelevelagreement_add'),
-    path(
-        'servicelevelagreement/import/', views.ServiceLevelAgreementBulkImportView.as_view(), name='servicelevelagreement_bulk_import'
+    path('servicelevelagreement/import/', views.ServiceLevelAgreementBulkImportView.as_view(), name='servicelevelagreement_bulk_import'
     ),
-    path(
-        'servicelevelagreement/edit/', views.ServiceLevelAgreementBulkEditView.as_view(), name='servicelevelagreement_bulk_edit'
+    path('servicelevelagreement/edit/', views.ServiceLevelAgreementBulkEditView.as_view(), name='servicelevelagreement_bulk_edit'
     ),
-    path(
-        'servicelevelagreement/delete/',
+    path('servicelevelagreement/delete/',
         views.ServiceLevelAgreementBulkDeleteView.as_view(),
         name='servicelevelagreement_bulk_delete',
     ),
-    path(
-        'servicelevelagreement/<int:pk>/',
-        include(get_model_urls('netbox_contract', 'servicelevelagreement')),
+    path('servicelevelagreement/<int:pk>/',
+        include(get_model_urls('netbox_contracts', 'servicelevelagreement')),
         name='servicelevelagreement',
     ),
-    path(
-        'servicelevelagreement/<int:pk>/edit/', views.ServiceLevelAgreementEditView.as_view(), name='servicelevelagreement_edit'
+    path('servicelevelagreement/<int:pk>/edit/', views.ServiceLevelAgreementEditView.as_view(), name='servicelevelagreement_edit'
     ),
-    path(
-        'servicelevelagreement/<int:pk>/delete/',
+    path('servicelevelagreement/<int:pk>/delete/',
         views.ServiceLevelAgreementDeleteView.as_view(),
         name='servicelevelagreement_delete',
     ),
-    path(
-        'servicelevelagreement/<int:pk>/changelog/',
+    path('servicelevelagreement/<int:pk>/changelog/',
         ObjectChangeLogView.as_view(),
         name='servicelevelagreement_changelog',
         kwargs={'model': models.ServiceLevelAgreement},
     ),
     # Contract assignments
-    path(
-        'assignments/',
+    path('assignments/',
         views.ContractAssignmentListView.as_view(),
         name='contractassignment_list',
     ),
-    path(
-        'assignments/add/',
+    path('assignments/add/',
         views.ContractAssignmentEditView.as_view(),
         name='contractassignment_add',
     ),
-    path(
-        'assignments/import/',
+    path('assignments/import/',
         views.ContractAssignmentBulkImportView.as_view(),
         name='contractassignment_bulk_import',
     ),
-    path(
-        'assignments/edit/',
+    path('assignments/edit/',
         views.ContractAssignmentBulkEditView.as_view(),
         name='contractassignment_bulk_edit',
     ),
-    path(
-        'assignments/delete/',
+    path('assignments/delete/',
         views.ContractAssignmentBulkDeleteView.as_view(),
         name='contractassignment_bulk_delete',
     ),
-    path(
-        'assignments/<int:pk>/',
+    path('assignments/<int:pk>/',
         views.ContractAssignmentView.as_view(),
         name='contractassignment',
     ),
-    path(
-        'assignments/<int:pk>/edit/',
+    path('assignments/<int:pk>/edit/',
         views.ContractAssignmentEditView.as_view(),
         name='contractassignment_edit',
     ),
-    path(
-        'assignments/<int:pk>/delete/',
+    path('assignments/<int:pk>/delete/',
         views.ContractAssignmentDeleteView.as_view(),
         name='contractassignment_delete',
     ),
-    path(
-        'assignments/<int:pk>/changelog/',
+    path('assignments/<int:pk>/changelog/',
         ObjectChangeLogView.as_view(),
         name='contractassignment_changelog',
         kwargs={'model': models.ContractAssignment},
+    ),
+    # Contract Types
+    path('contracttype/',
+        views.ContractTypeListView.as_view(),
+        name='contracttype_list',
+    ),
+    path('contracttype/add/',
+        views.ContractTypeEditView.as_view(),
+        name='contracttype_add',
+    ),
+    path('contracttype/<int:pk>/',
+        views.ContractTypeView.as_view(),
+        name='contracttype',
+    ),
+    path('contracttype/<int:pk>/edit/',
+        views.ContractTypeEditView.as_view(),
+        name='contracttype_edit',
+    ),
+    path('contracttype/edit/',
+        views.ContractTypeBulkEditView.as_view(),
+        name='contracttype_bulk_edit',
+    ),
+    path('contracttype/<int:pk>/delete/',
+        views.ContractTypeDeleteView.as_view(),
+        name='contracttype_delete',
+    ),
+    path('contracttype/delete/',
+        views.ContractTypeBulkDeleteView.as_view(),
+        name='contracttype_bulk_delete',
+    ),
+    path('contracttype/import/',
+        views.ContractTypeBulkImportView.as_view(),
+        name='contracttype_bulk_import',
+    ),
+    path('contracttype/<int:pk>/changelog/',
+        ObjectChangeLogView.as_view(),
+        name='contracttype_changelog',
+        kwargs={'model': models.ContractType},
+    ),
+    # HTMX endpoints
+    path(
+        'htmx/device/<int:pk>/contracts/',
+        views.DeviceContractsHTMXView.as_view(),
+        name='device_contracts_htmx',
+    ),
+    path(
+        'htmx/device/<int:pk>/contracts/expired/',
+        views.DeviceContractsExpiredHTMXView.as_view(),
+        name='device_contracts_expired',
+    ),
+    path(
+        'htmx/virtualmachine/<int:pk>/contracts/',
+        views.VirtualMachineContractsHTMXView.as_view(),
+        name='virtualmachine_contracts_htmx',
+    ),
+    path(
+        'htmx/virtualmachine/<int:pk>/contracts/expired/',
+        views.VirtualMachineContractsExpiredHTMXView.as_view(),
+        name='virtualmachine_contracts_expired',
     ),
 )

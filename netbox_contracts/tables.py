@@ -1,6 +1,5 @@
 import django_tables2 as tables
-from netbox.tables import NetBoxTable, columns
-from tenancy.tables import ContactsColumnMixin
+from netbox.tables import NetBoxTable, columns, ChoiceFieldColumn
 from circuits.models import Provider, ProviderAccount
 from .models import (
     Contract,
@@ -88,144 +87,177 @@ class ContractTypeListTable(NetBoxTable):
 
     class Meta(NetBoxTable.Meta):
         model = ContractType
-        fields = ('pk', 'id', 'name', 'description', 'color', 'actions')
+        fields = ('pk', 'id', 'name', 'description', 'color', 'comments', 'actions')
         default_columns = ('name', 'description', 'color')
 
 class ContractAssignmentListTable(NetBoxTable):
     id = tables.Column(linkify=True)
-    content_type = columns.ContentTypeColumn(verbose_name='Object Type')
-    content_object = tables.Column(linkify=True, orderable=False)
     contract = tables.Column(linkify=True)
+    object_type = columns.ContentTypeColumn(verbose_name='Object Type')
+    object = tables.Column(linkify=True, orderable=False)
     actions = columns.ActionsColumn(actions=('edit', 'delete'))
-    contract__external_party_object = tables.Column(linkify=True)
-    tags = columns.TagColumn(url_name='plugins:netbox_contract:contractassignment_list')
+    start_date = tables.Column(linkify=True)
+    end_date = tables.Column(linkify=True)
+    yrc = tables.Column(linkify=True)
+    nrc = tables.Column(linkify=True)
+    sla = tables.Column(linkify=True)
+    fe_vendor = tables.Column(linkify=True)
+    fe_vendor_account = tables.Column(linkify=True)
+    tags = columns.TagColumn(url_name='plugins:netbox_contracts:contractassignment_list')
+    contract__provider = tables.Column(linkify=True)
     contract__contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
+    object__region = tables.Column(linkify=True)
+    assignment_status = ChoiceFieldColumn()
 
     class Meta(NetBoxTable.Meta):
         model = ContractAssignment
         fields = (
-            'id',
-            'content_type',
-            'content_object',
+            'pk',
             'contract',
+            'object_type',
+            'object',
+            'start_date',
+            'end_date',
+            'yrc',
+            'nrc',
+            'sla',
+            'fe_vendor',
+            'fe_vendor_account',
+            'contract__provider',
             'contract__contract_type',
-            'contract__external_party_object_type',
-            'contract__external_party_object',
+            'contract__object_type',
+            'object__region',
             'actions',
+            'comments',
+            'assignment_status',
         )
         default_columns = (
-            'id',
-            'content_type',
-            'content_object',
+            'pk',
             'contract',
-            'contract__contract_type',
-            'contract__external_party_object_type',
-            'contract__external_party_object',
+            'assignment_status',
+            'object_type',
+            'object',
+            'start_date',
+            'end_date',
+            'yrc',
+            'nrc',
+            'sla',
+            'fe_vendor',
+            'fe_vendor_account',
+            'contract__provider',
+            'object__region'
         )
 
 class ContractAssignmentObjectTable(NetBoxTable):
     contract = tables.Column(linkify=True)
     actions = columns.ActionsColumn(actions=('edit', 'delete'))
-    contract__external_party_object = tables.Column(
-        verbose_name='Partner', linkify=True
+    contract__provider = tables.Column(
+        verbose_name='Provider', linkify=True
     )
-    contract__status = columns.ChoiceFieldColumn(
-        verbose_name=('Status'),
+    contract__provider_account = tables.Column(
+        verbose_name='Provider account', linkify=True
+    )    
+    fe_vendor = tables.Column(
+        verbose_name='FE Provider', linkify=True
+    )
+    fe_vendor_account = tables.Column(
+        verbose_name='FE Provider account', linkify=True
     )
     contract__contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
-    contract_type = tables.Column(linkify=True, verbose_name='Contract type')
+    assignment_status = ChoiceFieldColumn()
 
     class Meta(NetBoxTable.Meta):
         model = ContractAssignment
         fields = (
             'pk',
+            'assignment_status',
             'contract',
-            'contract__external_party_object',
-            'contract__status',
+            'contract__provider',
+            'contract__provider_account',
             'contract__contract_type',
-            'contract__start_date',
-            'contract__end_date',
-            'contract__yrc',
-            'contract__nrc',
+            'end_date',
+            'yrc',
+            'nrc',
+            'comments',
             'actions',
+            'fe_vendor',
+            'fe_vendor_account',
         )
         default_columns = (
             'pk',
+            'assignment_status',
             'contract',
-            'contract__external_party_object_type',
-            'contract__external_party_object',
-            'contract__status',
+            'contract__object_type',
+            'contract__provider',
             'contract__contract_type',
-            'contract__start_date',
-            'contract__end_date',
-            'contract__yrc',
-            'contract__nrc',
+            'end_date',
+            'fe_vendor',
         )
+        order_by = ('contract__status')
 
-class ContractAssignmentContractTable(NetBoxTable):
-    content_type = columns.ContentTypeColumn(verbose_name='Object Type')
-    content_object = tables.Column(linkify=True, verbose_name='Object', orderable=False)
-    content_object__status = columns.ChoiceFieldColumn(
-        verbose_name=('Status'),
-    )
-    actions = columns.ActionsColumn(actions=('edit', 'delete'))
-
-    class Meta(NetBoxTable.Meta):
-        model = ContractAssignment
-        fields = (
-            'pk',
-            'content_type',
-            'content_object',
-            'content_object__status',
-            'actions',
-        )
-        default_columns = (
-            'pk',
-            'content_type',
-            'content_object',
-            'content_object__status',
-        )
-
-class ContractListTable(ContactsColumnMixin, NetBoxTable):
+class ContractListTable(NetBoxTable):
     name = tables.Column(linkify=True)
-    external_party_object = tables.Column(verbose_name='External party', linkify=True)
+    provider = tables.Column(linkify=True)
     parent = tables.Column(linkify=True)
     yrc = tables.Column(verbose_name='Yerly recuring costs')
-    status = columns.ChoiceFieldColumn(
-        verbose_name=('Status'),
+    tags = columns.TagColumn(url_name='plugins:netbox_contracts:contract_list')
+    contract_type = tables.Column(linkify=True)
+    provider_account = tables.Column(linkify=True) 
+    start_date = tables.Column(linkify=True)
+    end_date = tables.Column(linkify=True)
+    term = tables.Column(linkify=True)
+    notice_period = tables.Column(linkify=True)
+    currency = tables.Column(linkify=True)
+    yrc = tables.Column(linkify=True)
+    nrc = tables.Column(linkify=True)
+    documents = tables.Column(linkify=True)
+    assgined_count = columns.LinkedCountColumn(
+        viewname='plugins:netbox_contracts:contractassignment_list',
+        url_params={'contract': 'pk'},
+        verbose_name=('Assignments')
     )
-    tags = columns.TagColumn(url_name='plugins:netbox_contract:contract_list')
-    contract_type = tables.Column(linkify=True, verbose_name='Contract type')
 
     class Meta(NetBoxTable.Meta):
         model = Contract
         fields = (
             'pk',
-            'id',
             'name',
             'contract_type',
-            'external_party_object_type',
-            'external_party_object',
-            'external_reference',
-            'internal_party',
-            'tenant',
-            'status',
+            'provider',
+            'provider_account',
             'start_date',
             'end_date',
-            'initial_term',
-            'renewal_term',
+            'term',
+            'notice_period'
             'currency',
             'yrc',
             'nrc',
-            'invoice_frequency',
             'documents',
-            'comments',
             'parent',
+            'comments',
+            'assgined_count',
             'actions',
         )
-        default_columns = ('name', 'status', 'contract_type', 'parent')
+        default_columns = (
+            'pk',
+            'name',
+            'contract_type',
+            'provider',
+            'provider_account',
+            'start_date',
+            'end_date',
+            'term',
+            'notice_period'
+            'currency',
+            'yrc',
+            'nrc',
+            'documents',
+            'assgined_count',
+            'parent',
+        )
+        order_by = ('name')
 
-class ServiceLevelAgreementListTable(ContactsColumnMixin, NetBoxTable):
+class ServiceLevelAgreementListTable(NetBoxTable):
     name = tables.Column(linkify=True)
     description = tables.Column(linkify=True, verbose_name='Description')
 
@@ -235,67 +267,8 @@ class ServiceLevelAgreementListTable(ContactsColumnMixin, NetBoxTable):
             'pk',
             'id',
             'name',
+            'description',
+            'comments',
             'actions',
         )
         default_columns = ('name', 'description')
-
-
-
-class ContractListBottomTable(NetBoxTable):
-    name = tables.Column(linkify=True)
-    external_party_object = tables.Column(linkify=True)
-    status = columns.ChoiceFieldColumn(
-        verbose_name=('Status'),
-    )
-
-    class Meta(NetBoxTable.Meta):
-        model = Contract
-        fields = (
-            'pk',
-            'id',
-            'name',
-            'external_party_object_type',
-            'external_party_object',
-            'external_reference',
-            'internal_party',
-            'status',
-            'yrc',
-            'comments',
-            'actions',
-        )
-        default_columns = (
-            'name',
-            'external_party_object_type',
-            'external_party_object',
-            'status',
-        )
-
-class ContractProviderBottomTable(NetBoxTable):
-    name = tables.Column(linkify=True)
-    external_party_object = tables.Column(linkify=True)
-    status = columns.ChoiceFieldColumn(
-        verbose_name=('Status'),
-    )
-
-    class Meta(NetBoxTable.Meta):
-        model = Contract
-        fields = (
-            'pk',
-            'id',
-            'name',
-            'start_date',
-            'end_date',
-            'external_reference',
-            'status',
-            'yrc',
-            'comments',
-            'actions',
-        )
-        default_columns = (
-            'name',
-            'status',
-            'external_reference',
-            'start_date',
-            'end_date',
-        )
-

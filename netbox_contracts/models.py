@@ -1,31 +1,28 @@
-from datetime import timedelta
-
-from dcim.choices import DeviceStatusChoices, SiteStatusChoices
+from datetime import timedelta, date
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
 from django.db import models
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
 from netbox.choices import ColorChoices
 from netbox.models import NetBoxModel
 from netbox.models.features import ContactsMixin
 from utilities.choices import ChoiceSet
 from utilities.fields import ColorField
-from virtualization.choices import VirtualMachineStatusChoices
 from circuits.models import Provider, ProviderAccount
 
-class StatusChoices(ChoiceSet):
-    key = 'Contract.status'
 
-    STATUS_ACTIVE = 'active'
-    STATUS_CANCELED = 'canceled'
-    STATUS_EXPIRED = 'expired'
+class StatusChoices(ChoiceSet):
+    ACTIVE = 'Active'
+    EXPIRED = 'Expired'
+    FUTURE = 'Future'
+    UNKNOWN = 'Unknown'
 
     CHOICES = [
-        (STATUS_ACTIVE, 'Active', 'green'),
-        (STATUS_CANCELED, 'Canceled', 'red'),
-        (STATUS_EXPIRED, 'Expired', 'orange'),
+        (ACTIVE, 'Active', 'green'),
+        (EXPIRED, 'Expired', 'red'),
+        (FUTURE, 'Future', 'blue'),
+        (UNKNOWN,'Unknown','gray'),
     ]
 
 class CurrencyChoices(ChoiceSet):
@@ -37,26 +34,31 @@ class CurrencyChoices(ChoiceSet):
         ('eur', 'EUR'),
         ('chf', 'CHF'),
     ]
-class InternalEntityChoices(ChoiceSet):
-    key = 'Contract.internal_party'
-
-    ENTITY = 'Default entity'
-
-    CHOICES = [
-        (ENTITY, 'Default entity', 'green'),
-    ]
 
 CURRENCY_DEFAULT = CurrencyChoices.CHOICES[0][0]
 
 class ContractType(NetBoxModel):
-    name = models.CharField(max_length=100, unique=True, verbose_name=_('name'))
-    description = models.TextField(blank=True, verbose_name=_('description'))
-    color = ColorField(default=ColorChoices.COLOR_GREY, verbose_name=_('color'))
-
+    name = models.CharField(
+        max_length=100, 
+        unique=True, 
+        verbose_name=_('name')
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name=_('description'),
+    )
+    color = ColorField(
+        default=ColorChoices.COLOR_GREY, 
+        verbose_name=_('color'),
+        blank=True,
+        null=True
+    )
+    comments = models.TextField(
+        blank=True
+    )
+    
     class Meta:
         ordering = ('name',)
-        verbose_name = _('contract type')
-        verbose_name_plural = _('contract types')
 
     def __str__(self):
         return self.name
@@ -64,67 +66,147 @@ class ContractType(NetBoxModel):
     def get_color(self):
         return self.color
 
-    def get_absolute_url(self):
-        return reverse('plugins:netbox_contracts:contracttype', args=[self.pk])
+class ServiceLevelAgreement(NetBoxModel):
+    name = models.CharField(
+        max_length=100, 
+        verbose_name=_('name')
+    )
+    description = models.TextField(
+        blank=True, 
+        verbose_name=_('description')
+    )
+    comments = models.TextField(
+        blank=True
+    )
+    class Meta:
+        ordering = ('name',)
+
+    def __str__(self):
+        return self.name
 
 class ContractAssignment(NetBoxModel):
-    content_type = models.ForeignKey(to=ContentType, on_delete=models.CASCADE, verbose_name=_('content type'))
-    content_object = GenericForeignKey(ct_field='content_type', fk_field='content_object')
     contract = models.ForeignKey(
         to='Contract',
         on_delete=models.CASCADE,
         related_name='assignments',
         verbose_name=_('contract'),
     )
-    start_date = models.DateField(blank=True, null=True, verbose_name=_('start date'))
-    end_date = models.DateField(blank=True, null=True, verbose_name=_('end date'))
-    recurring_costs = models.DecimalField(
-        verbose_name=_('monthly recuring cost for this assignment'),
-        max_digits=10,
-        decimal_places=2,
+    object_type = models.ForeignKey(
+        to=ContentType,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
-        help_text=_('Enter the monthly recurring cost for this assignment'),
+        verbose_name=_('object type'),
+    )
+    object_id = models.PositiveBigIntegerField(
+        blank=True,
+        null=True,
+        verbose_name=_('object ID')
+    )
+    object = GenericForeignKey(
+        ct_field='object_type', 
+        fk_field='object_id',
+    )
+    object.editable = True
+    end_date = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name=_('end date'),        
+        help_text=_('A unique end date varying from the contract'),
+        )
+    yrc = models.DecimalField(
+            verbose_name=_('yearly recuring cost'),
+            max_digits=10,
+            decimal_places=2,
+            blank=True,
+            null=True,
+            help_text=_('Enter the yearly recurring Costs'),
+        )
+    nrc = models.DecimalField(
+        verbose_name=_('non recuring cost'), 
+        default=0, 
+        max_digits=10, 
+        decimal_places=2,
+        help_text=_('Enter the non recurring costs'),
+        blank=True,
     )
     sla = models.ForeignKey(
-        to='ServiceLevelAgreement',
-        on_delete=models.PROTECT,
-        related_name='+',
+        to=ServiceLevelAgreement,
+        on_delete=models.CASCADE,
+        related_name='sla',
         blank=True,
         null=True
     )
-    onsite_fe = models.BooleanField(default=False)
+    provider = models.ForeignKey(
+            to=Provider,
+            on_delete=models.PROTECT,
+            related_name='provider',
+            blank=True,
+            null=True
+        )
     fe_vendor = models.ForeignKey(
-        to='circuits.Provider',
+            to=Provider,
+            on_delete=models.CASCADE,
+            related_name='vendor',
+            blank=True,
+            null=True
+        )
+    fe_vendor_account = models.ForeignKey(
+        to=ProviderAccount,
         on_delete=models.PROTECT,
-        related_name='+',
+        related_name='vendoraccount',
         blank=True,
         null=True
     )
-    clone_fields = ('content_type', 'content_object', 'contract')
+    comments = models.TextField(
+        blank=True,
+    )
+    clone_fields = (
+        'contract',
+        'end_date',
+        'yrc',
+        'nrc',
+        'sla',
+        'fe_vendor',
+        'fe_vendor_account',
+    )
 
     class Meta:
         ordering = ('contract',)
-        verbose_name = _('contract assignment')
-        verbose_name_plural = _('contract assignments')
 
     def get_absolute_url(self):
-        return reverse('plugins:netbox_contracts:contractassignment', args=[self.pk])
+        return reverse(
+            'plugins:netbox_contracts:contractassignment', args=[self.pk]
+        )
 
-    def get_contract__status_color(self):
-        return StatusChoices.colors.get(self.contract.status)
+    @property
+    def assignment_status(self):
+        today = date.today()
+        start = self.contract.start_date
 
-    def get_content_object__status_color(self):
-        STATUS_MAPPING = {
-            'virtualmachine': VirtualMachineStatusChoices.colors,
-            'device': DeviceStatusChoices.colors,
-            'site': SiteStatusChoices.colors,
-        }
-        status_colors = STATUS_MAPPING.get(self.content_type.model, StatusChoices.colors)
-        return status_colors.get(self.content_object.status)
+        if not self.end_date:
+            end = self.contract.end_date
+        else:
+            end = self.end_date
+        
+        if not start:
+            return "Unknown"
 
-class Contract(ContactsMixin, NetBoxModel):
-    name = models.CharField(max_length=100, verbose_name=_('name'))
+        if today < start:
+            return "Future"
+        elif today > end:
+            return "Expired"
+        else:
+            return "Active"
+
+    def get_assignment_status_color(self):
+        return StatusChoices.colors.get(self.assignment_status)
+
+class Contract(ContactsMixin,NetBoxModel):
+    name = models.CharField(
+        max_length=100, 
+        verbose_name=_('name')
+    )
     contract_type = models.ForeignKey(
         to='netbox_contracts.ContractType',
         on_delete=models.PROTECT,
@@ -134,44 +216,42 @@ class Contract(ContactsMixin, NetBoxModel):
         verbose_name=_('contract type'),
     )
     provider = models.ForeignKey(
-        to='circuits.Provider',
+        to=Provider,
         on_delete=models.PROTECT,
-        related_name='+',
+        related_name='providers',
         blank=True,
         null=True
     )
     provider_account = models.ForeignKey(
-        to='circuits.ProviderAccount',
+        to=ProviderAccount,
         on_delete=models.PROTECT,
-        related_name='+',
+        related_name='provisderaccounts',
         blank=True,
         null=True
     )
-    status = models.CharField(
-        max_length=50,
-        choices=StatusChoices,
-        default=StatusChoices.STATUS_ACTIVE,
-        verbose_name=_('status'),
+    start_date = models.DateField(
+        blank=True, 
+        null=True, 
+        verbose_name=_('start date')
     )
-    start_date = models.DateField(blank=True, null=True, verbose_name=_('start date'))
-    end_date = models.DateField(blank=True, null=True, verbose_name=_('end date'))
-    term = models.IntegerField(
-        help_text=_('In months'),
-        default=12,
+    end_date = models.DateField(
         blank=True,
-        null=True,
-        verbose_name=_('term'),
+        null=True, 
+        verbose_name=_('end date')
     )
     notice_period = models.IntegerField(
         help_text=_('Contract notice period. Default to 90 days'),
         default=90,
         verbose_name=_('notice period'),
+        blank=True,
+        null=True
     )
     currency = models.CharField(
         max_length=3,
         choices=CurrencyChoices,
         default=CURRENCY_DEFAULT,
         verbose_name=_('currency'),
+        blank=True,
     )
     yrc = models.DecimalField(
         verbose_name=_('yearly recuring cost'),
@@ -179,15 +259,21 @@ class Contract(ContactsMixin, NetBoxModel):
         decimal_places=2,
         blank=True,
         null=True,
-        help_text=_('Use either this field of the monthly recuring cost field'),
+        help_text=_('Enter the yearly recurring Costs'),
     )
-    nrc = models.DecimalField(verbose_name=_('none recuring cost'), default=0, max_digits=10, decimal_places=2)
+    nrc = models.DecimalField(
+        verbose_name=_('non recuring cost'), 
+        default=0, 
+        max_digits=10, 
+        decimal_places=2,
+        blank=True,
+        null=True,
+    )
     documents = models.URLField(
         blank=True,
         verbose_name=_('documents'),
         help_text=_('URL to the contract documents'),
     )
-    comments = models.TextField(blank=True, verbose_name=_('comments'))
     parent = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
@@ -196,40 +282,57 @@ class Contract(ContactsMixin, NetBoxModel):
         blank=True,
         verbose_name=_('parent'),
     )
+    comments = models.TextField(
+        blank=True,
+    )
+    clone_fields = ('contract_type', 'provider', 'provider_account', 'start_date', 'end_date', 'notice_period','currency', 'yrc', 'nrc', 'parent', 'documents' )
 
-    def get_absolute_url(self):
-        return reverse('plugins:netbox_contracts:contract', args=[self.pk])
-
-    def get_status_color(self):
-        return StatusChoices.colors.get(self.status)
-
-    class Meta:
-        ordering = ('name',)
-        verbose_name = _('contract')
-        verbose_name_plural = _('contracts')
-
-    @property
     def notice_date(self):
         return self.end_date - timedelta(days=self.notice_period)
-
-    def __str__(self):
-        return self.name
 
     def contract_length(self):
         if self.start_date:
             return self.end_date - self.start_date
         return None
-    
-class ServiceLevelAgreement(NetBoxModel):
-    name = models.CharField(max_length=100, verbose_name=_('name'))
-    description = models.TextField(blank=True, verbose_name=_('description'))
+
+    @property
+    def contract_status(self):
+        today = date.today()
+        if not self.start_date or not self.end_date:
+            return "N/A"
+
+        if today < self.start_date:
+            return "Upcoming"
+        elif today > self.end_date:
+            return "Expired"
+        else:
+            return "Active"
+
+    @property
+    def calculated_contract_status_color(self):
+        status = self.contract_status
+        if status == "Active":
+            return "green"
+        elif status == "Upcoming":
+            return "blue"
+        elif status == "Expired":
+            return "red"
+        else:
+            return "gray"
 
     class Meta:
-        ordering = ('-name',)
-        verbose_name = _('SLA')
+        ordering = ['name',]
+        constraints = (
+            models.UniqueConstraint(
+                'provider',
+                models.functions.Lower('name'),
+                name='%(app_label)s_%(class)s_unique_provider_name', # name='%(app_label)s_%(class)s_unique_vendor_contract_id',
+                violation_error_message="Contract must be unique per provider.",
+            ),
+        )
 
     def __str__(self):
         return self.name
-
+    
     def get_absolute_url(self):
-        return reverse('plugins:netbox_contracts:servicelevelagreements', args=[self.pk])
+        return reverse('plugins:netbox_contracts:contract', args=[self.pk])

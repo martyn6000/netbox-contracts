@@ -6,7 +6,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "netbox-contract"
+name = "netbox-contracts"
 version = "1.0"
 authors = [
   { name="Martyn Stanton", email="martynstanton@hotmail.com" },
@@ -40,6 +40,6 @@ test = ["coverage", "pytest", "pytest-cov"]
 packages = [
     "netbox_contracts",
 ]
-package-data = { "netbox_contract" = ["**/*", "templates/**"] }
-exclude-package-data = { netbox_contract = ["tests/*"] }
+package-data = { "netbox_contracts" = ["**/*", "templates/**"] }
+exclude-package-data = { netbox_contracts = ["tests/*"] }
 license-files = ["LICENSE"]

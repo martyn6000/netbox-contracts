@@ -7,7 +7,6 @@ class ServiceLevelAgreementIndex(SearchIndex):
     model = ServiceLevelAgreement
     fields = (
         ('name', 100),
-        ('comments', 5000),
     )
 
 
