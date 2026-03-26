@@ -1,11 +1,8 @@
 import django_filters
-from django import forms
 from django.db.models import Q
-from django.contrib.contenttypes.models import ContentType
 from netbox.filtersets import NetBoxModelFilterSet, PrimaryModelFilterSet
 from tenancy.filtersets import ContactModelFilterSet
 from circuits.models import Provider, ProviderAccount
-from virtualization.models import VirtualMachine
 from dcim.models import Region, Site, SiteGroup
 from ipam.models import ASN
 from .models import (
