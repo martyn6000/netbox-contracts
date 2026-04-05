@@ -10,6 +10,7 @@ from utilities.querydict import normalize_querydict
 from utilities.views import register_model_view, GetRelatedModelsMixin, ViewTab
 from circuits.models import Circuit, Provider, ProviderAccount, VirtualCircuit
 from circuits.tables import ProviderTable, ProviderAccountTable
+from circuits.filtersets import ProviderFilterSet, ProviderAccountFilterSet
 from circuits.forms import ProviderImportForm, ProviderAccountImportForm, ProviderFilterForm, ProviderForm, ProviderBulkEditForm, ProviderAccountFilterForm, ProviderAccountForm, ProviderAccountBulkEditForm
 from dcim.models import Device
 from . import filtersets, forms, tables
@@ -205,7 +206,7 @@ class ProviderListView(generic.ObjectListView):
         account_count=count_related(ProviderAccount, 'id'),
         count_devices=count_related(Device,'id')
     )
-    filterset = filtersets.ProviderFilterSet
+    filterset = ProviderFilterSet
     filterset_form = ProviderFilterForm
     table = ProviderTable
 
@@ -250,21 +251,21 @@ class ProviderBulkEditView(generic.BulkEditView):
     queryset = Provider.objects.annotate(
         count_circuits=count_related(Circuit, 'provider')
     )
-    filterset = filtersets.ProviderFilterSet
+    filterset = ProviderFilterSet
     table = ProviderTable
     form = ProviderBulkEditForm
 
 @register_model_view(Provider, 'bulk_rename', path='rename', detail=False)
 class ProviderBulkRenameView(generic.BulkRenameView):
     queryset = Provider.objects.all()
-    filterset = filtersets.ProviderFilterSet
+    filterset = ProviderFilterSet
 
 @register_model_view(Provider, 'bulk_delete', path='delete', detail=False)
 class ProviderBulkDeleteView(generic.BulkDeleteView):
     queryset = Provider.objects.annotate(
         count_circuits=count_related(Circuit, 'provider')
     )
-    filterset = filtersets.ProviderFilterSet
+    filterset = ProviderFilterSet
     table = ProviderTable
 #
 # ProviderAccounts
@@ -283,7 +284,7 @@ class ProviderAccountListView(generic.ObjectListView):
     queryset = ProviderAccount.objects.annotate(
         count_circuits=count_related(Circuit, 'provider_account')
     )
-    filterset = filtersets.ProviderAccountFilterSet
+    filterset = ProviderAccountFilterSet
     filterset_form = ProviderAccountFilterForm
     table = ProviderAccountTable
 
@@ -308,21 +309,21 @@ class ProviderAccountBulkEditView(generic.BulkEditView):
     queryset = ProviderAccount.objects.annotate(
         count_circuits=count_related(Circuit, 'provider_account')
     )
-    filterset = filtersets.ProviderAccountFilterSet
+    filterset = ProviderAccountFilterSet
     table = ProviderAccountTable
     form = ProviderAccountBulkEditForm
 
 @register_model_view(ProviderAccount, 'bulk_rename', path='rename', detail=False)
 class ProviderAccountBulkRenameView(generic.BulkRenameView):
     queryset = ProviderAccount.objects.all()
-    filterset = filtersets.ProviderAccountFilterSet
+    filterset = ProviderAccountFilterSet
 
 @register_model_view(ProviderAccount, 'bulk_delete', path='delete', detail=False)
 class ProviderAccountBulkDeleteView(generic.BulkDeleteView):
     queryset = ProviderAccount.objects.annotate(
         count_circuits=count_related(Circuit, 'provider_account')
     )
-    filterset = filtersets.ProviderAccountFilterSet
+    filterset = ProviderAccountFilterSet
     table = ProviderAccountTable
 #  
 # Service Level Agreement views
