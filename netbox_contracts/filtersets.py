@@ -1,10 +1,7 @@
 import django_filters
 from django.db.models import Q
-from netbox.filtersets import NetBoxModelFilterSet, PrimaryModelFilterSet
-from tenancy.filtersets import ContactModelFilterSet
-from circuits.models import Provider, ProviderAccount
-from dcim.models import Region, Site, SiteGroup
-from ipam.models import ASN
+from netbox.filtersets import NetBoxModelFilterSet
+
 from .models import (
     Contract,
     ContractAssignment,
@@ -12,12 +9,6 @@ from .models import (
     CurrencyChoices,
     ServiceLevelAgreement,
 )
-from utilities.filters import (
-    TreeNodeMultipleChoiceFilter,
-)
-from utilities.filtersets import register_filterset
-
-
 __all__ = (
     'NestedGroupModelFilterSetForm',
     'NetBoxModelFilterSetForm',
