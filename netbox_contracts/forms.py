@@ -27,26 +27,9 @@ from .models import (
     CurrencyChoices,
     ServiceLevelAgreement,
 )
-from netbox.forms.mixins import OwnerMixin, OwnerFilterMixin
+from netbox.forms.mixins import OwnerFilterMixin
 
 plugin_settings = settings.PLUGINS_CONFIG['netbox_contracts']
-
-class PrimaryModelBulkEditForm(OwnerMixin, NetBoxModelBulkEditForm):
-    """
-    Bulk edit form for models which inherit from PrimaryModel.
-    """
-    description = forms.CharField(
-        label=_('Description'),
-        max_length=100,
-        required=False
-    )
-    comments = CommentField()
-
-class PrimaryModelFilterSetForm(OwnerFilterMixin, NetBoxModelFilterSetForm):
-    """
-    FilterSet form for models which inherit from PrimaryModel.
-    """
-    pass
 
 # Contract
 class ContractForm(NetBoxModelForm):
@@ -232,123 +215,6 @@ class ContractTypeFilterForm(NetBoxModelFilterSetForm):
     model = ContractType
     name = forms.CharField(required=False, label=_('Name'))
     description = CommentField(label=_('Description'))
-
-# Circuit Provider forms
-# class ProviderForm(PrimaryModelForm):
-#     slug = SlugField()
-#     asns = DynamicModelMultipleChoiceField(
-#         queryset=ASN.objects.all(),
-#         label=_('ASNs'),
-#         required=False
-#     )
-
-#     fieldsets = (
-#         FieldSet('name', 'slug', 'asns', 'description', 'tags'),
-#     )
-
-#     class Meta:
-#         model = Provider
-#         fields = [
-#             'name', 'slug', 'asns', 'description', 'owner', 'comments', 'tags',
-#         ]
-
-# class ProviderAccountForm(PrimaryModelForm):
-#     provider = DynamicModelChoiceField(
-#         label=_('Provider'),
-#         queryset=Provider.objects.all(),
-#         selector=True,
-#         quick_add=True
-#     )
-
-#     class Meta:
-#         model = ProviderAccount
-#         fields = [
-#             'provider', 'name', 'account', 'description', 'owner', 'comments', 'tags',
-#         ]
-
-# class ProviderFilterForm(ContactModelFilterForm, PrimaryModelFilterSetForm):
-#     model = Provider
-#     fieldsets = (
-#         FieldSet('q', 'filter_id', 'tag'),
-#         FieldSet('region_id', 'site_group_id', 'site_id', name=_('Location')),
-#         FieldSet('asn_id', name=_('ASN')),
-#         FieldSet('owner_group_id', 'owner_id', name=_('Ownership')),
-#         FieldSet('contact', 'contact_role', 'contact_group', name=_('Contacts')),
-#     )
-#     region_id = DynamicModelMultipleChoiceField(
-#         queryset=Region.objects.all(),
-#         required=False,
-#         label=_('Region')
-#     )
-#     site_group_id = DynamicModelMultipleChoiceField(
-#         queryset=SiteGroup.objects.all(),
-#         required=False,
-#         label=_('Site group')
-#     )
-#     site_id = DynamicModelMultipleChoiceField(
-#         queryset=Site.objects.all(),
-#         required=False,
-#         query_params={
-#             'region_id': '$region_id',
-#             'site_group_id': '$site_group_id',
-#         },
-#         label=_('Site')
-#     )
-#     asn_id = DynamicModelMultipleChoiceField(
-#         queryset=ASN.objects.all(),
-#         required=False,
-#         label=_('ASNs')
-#     )
-#     tag = TagFilterField(model)
-
-# class ProviderAccountFilterForm(ContactModelFilterForm, PrimaryModelFilterSetForm):
-#     model = ProviderAccount
-#     fieldsets = (
-#         FieldSet('q', 'filter_id', 'tag'),
-#         FieldSet('provider_id', 'account', name=_('Attributes')),
-#         FieldSet('owner_group_id', 'owner_id', name=_('Ownership')),
-#         FieldSet('contact', 'contact_role', 'contact_group', name=_('Contacts')),
-#     )
-#     provider_id = DynamicModelMultipleChoiceField(
-#         queryset=Provider.objects.all(),
-#         required=False,
-#         label=_('Provider')
-#     )
-#     account = forms.CharField(
-#         label=_('Account'),
-#         required=False
-#     )
-#     tag = TagFilterField(model)
-
-# class ProviderBulkEditForm(PrimaryModelBulkEditForm):
-#     asns = DynamicModelMultipleChoiceField(
-#         queryset=ASN.objects.all(),
-#         label=_('ASNs'),
-#         required=False
-#     )
-
-#     model = Provider
-#     fieldsets = (
-#         FieldSet('asns', 'description'),
-#     )
-#     nullable_fields = (
-#         'asns', 'description', 'comments',
-#     )
-
-# class ProviderAccountBulkEditForm(PrimaryModelBulkEditForm):
-#     provider = DynamicModelChoiceField(
-#         label=_('Provider'),
-#         queryset=Provider.objects.all(),
-#         required=False
-#     )
-
-#     model = ProviderAccount
-#     fieldsets = (
-#         FieldSet('provider', 'description'),
-#     )
-#     nullable_fields = (
-#         'description', 'comments',
-#     )
 
 # ContractAssignment
 class ContractAssignmentForm(NetBoxModelForm):
