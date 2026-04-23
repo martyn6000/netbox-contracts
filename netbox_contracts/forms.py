@@ -27,8 +27,6 @@ from .models import (
     CurrencyChoices,
     ServiceLevelAgreement,
 )
-from netbox.forms.mixins import OwnerFilterMixin
-
 plugin_settings = settings.PLUGINS_CONFIG['netbox_contracts']
 
 # Contract
