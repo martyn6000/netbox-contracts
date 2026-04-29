@@ -19,19 +19,26 @@ class NestedContractSerializer(WritableNestedSerializer):
 
     class Meta:
         model = Contract
-        fields = fields = (
+        fields = (
             'id',
             'url',
             'display',
             'name',
             'contract_type',
-            'status',
+            'provider',
+            'provider_account',
             'start_date',
             'end_date',
+            'notice_period',
             'currency',
             'yrc',
             'nrc',
             'comments',
+            'parent',
+            'tags',
+            'custom_fields',
+            'created',
+            'last_updated',
         )
 
     @swagger_serializer_method(serializer_or_field=serializers.JSONField)
@@ -78,9 +85,11 @@ class ContractSerializer(NetBoxModelSerializer):
             'display',
             'name',
             'contract_type',
-            'status',
+            'provider',
+            'provider_account',
             'start_date',
             'end_date',
+            'notice_period',
             'currency',
             'yrc',
             'nrc',
@@ -97,7 +106,8 @@ class ContractSerializer(NetBoxModelSerializer):
             'display',
             'name',
             'contract_type',
-            'status',
+            'provider',
+            'provider_account',
             'start_date',
             'end_date',
             'currency',
