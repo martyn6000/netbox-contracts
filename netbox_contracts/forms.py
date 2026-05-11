@@ -19,7 +19,7 @@ from utilities.forms.fields import (
     TagFilterField,
 )
 from utilities.forms.widgets import DatePicker, HTMXSelect
-from .constants import ASSIGNEMENT_MODELS
+from .constants import ASSIGNMENT_MODELS
 from .models import (
     Contract,
     ContractAssignment,
@@ -38,7 +38,7 @@ class ContractForm(NetBoxModelForm):
         label=_('Parent'),
     )
     contract_type = DynamicModelChoiceField(
-        queryset=ContractType.objects.all(), required=False, selector=True, label=_('Contract type')
+        queryset=ContractType.objects.all(), required=True, selector=True, label=_('Contract type')
     )
 
     provider = DynamicModelChoiceField(
@@ -143,6 +143,20 @@ class ContractCSVForm(NetBoxModelImportForm):
         required=False,
         label=_('Contract type'),
     )
+    provider = CSVModelChoiceField(
+        queryset=Provider.objects.all(),
+        to_field_name='name',
+        help_text='NetBox name of the provider ',
+        required=True,
+        label=_('Provider'),
+    )
+    provider_account = CSVModelChoiceField(
+        queryset=ProviderAccount.objects.all(),
+        to_field_name='account',
+        help_text='NetBox account name of the provider account ',
+        required=False,
+        label=_('Provider Account'),
+    )
 
     class Meta:
         model = Contract
@@ -221,7 +235,7 @@ class ContractAssignmentForm(NetBoxModelForm):
 
     object_type = ContentTypeChoiceField(
         queryset=ContentType.objects.all(),
-        limit_choices_to=ASSIGNEMENT_MODELS,
+        limit_choices_to=ASSIGNMENT_MODELS,
         widget=HTMXSelect(),
         label=_('Object Type'),
     )
@@ -332,7 +346,7 @@ class ContractAssignmentFilterForm(NetBoxModelFilterSetForm):
 class ContractAssignmentImportForm(NetBoxModelImportForm):
     object_type = CSVContentTypeField(
         queryset=ContentType.objects.all(),
-        limit_choices_to=ASSIGNEMENT_MODELS,
+        limit_choices_to=ASSIGNMENT_MODELS,
         help_text='Content Type in the form <app>.<model>',
         label=_('Content type'),
     )
@@ -373,28 +387,14 @@ class ServiceLevelAgreementFilterForm(NetBoxModelFilterSetForm):
     )
 
 class ServiceLevelAgreementImportForm(NetBoxModelImportForm):
-    object_type = CSVContentTypeField(
-        queryset=ContentType.objects.all(),
-        limit_choices_to=ASSIGNEMENT_MODELS,
-        help_text='Content Type in the form <app>.<model>',
-        label=_('Content type'),
-    )
-    contract = CSVModelChoiceField(
-        queryset=ServiceLevelAgreement.objects.all(),
-        help_text='ServiceLevelAgreement id',
-        label=_('ServiceLevelAgreement'),
-    )
+    name = forms.CharField(required=False, label='SLA Name')
+    description = forms.CharField(required=False, label='Description')
+    model = ServiceLevelAgreement
 
     class Meta:
         model = ServiceLevelAgreement
-        fields = ['object_type', 'contract', 'tags']
+        fields = ['name', 'description', 'tags']
 
 class ServiceLevelAgreementBulkEditForm(NetBoxModelBulkEditForm):
-    contract = DynamicModelChoiceField(
-        queryset=ServiceLevelAgreement.objects.all(),
-        required=False,
-        selector=True,
-        label=_('Service Level Agreement'),
-    )
+    description = forms.CharField(required=False, label='Description')
     model = ServiceLevelAgreement
-

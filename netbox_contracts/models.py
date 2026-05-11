@@ -115,7 +115,7 @@ class ContractAssignment(NetBoxModel):
         help_text=_('A unique end date varying from the contract'),
         )
     yrc = models.DecimalField(
-            verbose_name=_('yearly recuring cost'),
+            verbose_name=_('yearly recurring cost'),
             max_digits=10,
             decimal_places=2,
             blank=True,
@@ -123,7 +123,7 @@ class ContractAssignment(NetBoxModel):
             help_text=_('Enter the yearly recurring Costs'),
         )
     nrc = models.DecimalField(
-        verbose_name=_('non recuring cost'), 
+        verbose_name=_('non recurring cost'), 
         default=0, 
         max_digits=10, 
         decimal_places=2,
@@ -261,7 +261,7 @@ class Contract(ContactsMixin,NetBoxModel):
         blank=True,
     )
     yrc = models.DecimalField(
-        verbose_name=_('yearly recuring cost'),
+        verbose_name=_('yearly recurring cost'),
         max_digits=10,
         decimal_places=2,
         blank=True,
@@ -269,7 +269,7 @@ class Contract(ContactsMixin,NetBoxModel):
         help_text=_('Enter the yearly recurring Costs'),
     )
     nrc = models.DecimalField(
-        verbose_name=_('non recuring cost'), 
+        verbose_name=_('non recurring cost'), 
         default=0, 
         max_digits=10, 
         decimal_places=2,

@@ -283,23 +283,23 @@ msgid "This field is deprecated and will be removed in version 3"
 msgstr "Ce champ est sera supprimé en version 3."
 
 #: models.py:256
-msgid "yearly recuring cost"
+msgid "yearly recurring cost"
 msgstr "coût annuel"
 
 #: models.py:261
-msgid "Use either this field of the monthly recuring cost field"
+msgid "Use either this field of the monthly recurring cost field"
 msgstr "Utiliser soit ce champ soit le champ \"coût mensuel\"."
 
 #: models.py:264
-msgid "monthly recuring cost"
+msgid "monthly recurring cost"
 msgstr "coût mensuel"
 
 #: models.py:269
-msgid "Use either this field of the yearly recuring cost field"
+msgid "Use either this field of the yearly recurring cost field"
 msgstr "Utiliser soit ce champ soit le champ \"cout annuel\"."
 
 #: models.py:272
-msgid "none recuring cost"
+msgid "none recurring cost"
 msgstr "coûts uniques"
 
 #: models.py:278
@@ -430,11 +430,11 @@ msgid "days"
 msgstr "jours"
 
 #: templates/netbox_contracts/contract.html:88
-msgid "Monthly recuring costs"
+msgid "Monthly recurring costs"
 msgstr "Coûts mensuels récurrents"
 
 #: templates/netbox_contracts/contract.html:92
-msgid "Yearly recuring costs"
+msgid "Yearly recurring costs"
 msgstr "Coûts annuels récurrents"
 
 #: templates/netbox_contracts/contract.html:96
@@ -442,7 +442,7 @@ msgid "calculated corresponding Yearly or Monthly value"
 msgstr "valeur annuelle ou mensuelle correspondante calculée"
 
 #: templates/netbox_contracts/contract.html:100
-msgid "Non recuring costs"
+msgid "Non recurring costs"
 msgstr "Coûts uniques"
 
 #: templates/netbox_contracts/contract.html:104

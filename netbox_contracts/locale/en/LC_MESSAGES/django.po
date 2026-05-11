@@ -279,23 +279,23 @@ msgid "This field is deprecated and will be removed in version 3"
 msgstr ""
 
 #: models.py:256
-msgid "yearly recuring cost"
+msgid "yearly recurring cost"
 msgstr ""
 
 #: models.py:261
-msgid "Use either this field of the monthly recuring cost field"
+msgid "Use either this field of the monthly recurring cost field"
 msgstr ""
 
 #: models.py:264
-msgid "monthly recuring cost"
+msgid "monthly recurring cost"
 msgstr ""
 
 #: models.py:269
-msgid "Use either this field of the yearly recuring cost field"
+msgid "Use either this field of the yearly recurring cost field"
 msgstr ""
 
 #: models.py:272
-msgid "none recuring cost"
+msgid "none recurring cost"
 msgstr ""
 
 #: models.py:278
@@ -426,11 +426,11 @@ msgid "days"
 msgstr ""
 
 #: templates/netbox_contracts/contract.html:88
-msgid "Monthly recuring costs"
+msgid "Monthly recurring costs"
 msgstr ""
 
 #: templates/netbox_contracts/contract.html:92
-msgid "Yearly recuring costs"
+msgid "Yearly recurring costs"
 msgstr ""
 
 #: templates/netbox_contracts/contract.html:96
@@ -438,7 +438,7 @@ msgid "calculated corresponding Yearly or Monthly value"
 msgstr ""
 
 #: templates/netbox_contracts/contract.html:100
-msgid "Non recuring costs"
+msgid "Non recurring costs"
 msgstr ""
 
 #: templates/netbox_contracts/contract.html:104

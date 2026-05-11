@@ -21,6 +21,8 @@ from ipam.models import ASN
 from django.db.models.functions import Round
 from virtualization.models import VirtualMachine
 
+
+
 # from .constants import (
 #     CONTRACT_STATUS_ACTIVE,
 #     CONTRACT_STATUS_EXPIRED,
@@ -343,7 +345,7 @@ class ServiceLevelAgreementEditView(generic.ObjectEditView):
 @register_model_view(ServiceLevelAgreement, 'bulk_import')
 class ServiceLevelAgreementBulkImportView(generic.BulkImportView):
     queryset = ServiceLevelAgreement.objects.all()
-    model_form = forms.ServiceLevelAgreementBulkEditForm
+    model_form = forms.ServiceLevelAgreementImportForm
     table = tables.ServiceLevelAgreementListTable
 
 @register_model_view(ServiceLevelAgreement, 'bulk_edit')

@@ -10,6 +10,12 @@ contract_buttons = [
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
         permissions=['netbox_contracts.add_contract'],
+    ),
+    PluginMenuButton(
+        link='plugins:netbox_contracts:contract_bulk_import',
+        title=_('Import'),
+        icon_class="mdi mdi-upload",
+        permissions=['netbox_contracts.add_contract'],
     )
 ]
 
@@ -18,6 +24,12 @@ contracttype_buttons = [
         link='plugins:netbox_contracts:contracttype_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_contract'],
+    ),
+    PluginMenuButton(
+        link='plugins:netbox_contracts:contracttype_bulk_import',
+        title=_('Import'),
+        icon_class="mdi mdi-upload",
         permissions=['netbox_contracts.add_contract'],
     )
 ]
@@ -28,6 +40,12 @@ provider_buttons = [
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
         permissions=['netbox_contracts.add_provider'],
+    ),
+    PluginMenuButton(
+        link='plugins:netbox_contracts:provider_bulk_import',
+        title=_('Import'),
+        icon_class="mdi mdi-upload",
+        permissions=['netbox_contracts.add_provider'],
     )
 ]
 
@@ -36,6 +54,12 @@ servicelevelagreement_buttons = [
         link='plugins:netbox_contracts:servicelevelagreement_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_servicelevelagreement'],
+    ),
+    PluginMenuButton(
+        link='plugins:netbox_contracts:servicelevelagreement_bulk_import',
+        title=_('Import'),
+        icon_class="mdi mdi-upload",
         permissions=['netbox_contracts.add_servicelevelagreement'],
     )
 ]
@@ -46,6 +70,12 @@ provideraccount_buttons = [
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
         permissions=['netbox_contracts.add_provideraccount'],
+    ),
+    PluginMenuButton(
+        link='plugins:netbox_contracts:provideraccount_bulk_import',
+        title=_('Import'),
+        icon_class="mdi mdi-upload",
+        permissions=['netbox_contracts.add_provideraccount'],
     )
 ]
 
@@ -54,6 +84,12 @@ contractassingmenttype_buttons = [
         link='plugins:netbox_contracts:contractassignment_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_contractassignment'],
+    ),
+    PluginMenuButton(
+        link='plugins:netbox_contracts:contractassignment_bulk_import',
+        title=_('Import'),
+        icon_class="mdi mdi-upload",
         permissions=['netbox_contracts.add_contractassignment'],
     )
 ]

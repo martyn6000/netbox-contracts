@@ -147,6 +147,10 @@ urlpatterns = (
         name='contractassignment_changelog',
         kwargs={'model': models.ContractAssignment},
     ),
+    # path('assignments/<int:pk>/contacts/', 
+    #      views.ContractAssignmentContactsView.as_view(), 
+    #      name='contractassignment_contacts',
+    # ),
     # Contract Types
     path('contracttype/',
         views.ContractTypeListView.as_view(),

@@ -3,11 +3,11 @@ from netbox.plugins import PluginTemplateExtension
 
 from . import tables
 from .models import ContractAssignment
-from .constants import ASSIGNEMENT_TYPES
+from .constants import ASSIGNMENT_TYPES
 
 
 class ObjectContractAssignments(PluginTemplateExtension):
-    models = ASSIGNEMENT_TYPES
+    models = ASSIGNMENT_TYPES
 
     def full_width_page(self):
         object = self.context['object']

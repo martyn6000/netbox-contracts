@@ -108,6 +108,10 @@ class ContractAssignmentListTable(NetBoxTable):
     contract__contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
     object__region = tables.Column(linkify=True)
     assignment_status = ChoiceFieldColumn()
+    device_serial = tables.Column(
+        accessor='object.serial',
+        verbose_name='Device Serial',
+    )
 
     class Meta(NetBoxTable.Meta):
         model = ContractAssignment
@@ -130,6 +134,7 @@ class ContractAssignmentListTable(NetBoxTable):
             'actions',
             'comments',
             'assignment_status',
+            'device_serial',
         )
         default_columns = (
             'pk',
@@ -145,7 +150,8 @@ class ContractAssignmentListTable(NetBoxTable):
             'fe',
             'fe_account',
             'contract__provider',
-            'object__region'
+            'object__region',
+            'device_serial',
         )
 
 class ContractAssignmentObjectTable(NetBoxTable):
@@ -156,7 +162,7 @@ class ContractAssignmentObjectTable(NetBoxTable):
     )
     contract__provider_account = tables.Column(
         verbose_name='Provider account', linkify=True
-    )    
+    )
     fe = tables.Column(
         verbose_name='FE Provider', linkify=True
     )
@@ -199,7 +205,7 @@ class ContractListTable(NetBoxTable):
     name = tables.Column(linkify=True)
     provider = tables.Column(linkify=True)
     parent = tables.Column(linkify=True)
-    yrc = tables.Column(verbose_name='Yerly recuring costs')
+    yrc = tables.Column(verbose_name='Yeerly recurring costs')
     tags = columns.TagColumn(url_name='plugins:netbox_contracts:contract_list')
     contract_type = tables.Column(linkify=True)
     provider_account = tables.Column(linkify=True) 

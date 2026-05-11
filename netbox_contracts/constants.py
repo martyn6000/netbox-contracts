@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-ASSIGNEMENT_TYPES = (
+ASSIGNMENT_TYPES = (
     'circuits.circuit',
     'circuits.virtualcircuit',
     'dcim.site',
@@ -21,4 +21,4 @@ def build_models_q(model_strings):
         q |= Q(app_label=app_label, model=model)
     return q
 
-ASSIGNEMENT_MODELS = build_models_q(ASSIGNEMENT_TYPES)
+ASSIGNMENT_MODELS = build_models_q(ASSIGNMENT_TYPES)
