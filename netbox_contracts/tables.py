@@ -216,7 +216,8 @@ class ContractListTable(NetBoxTable):
         url_params={'contract': 'pk'},
         verbose_name=('Assignments')
     )
-
+    contract_status = ChoiceFieldColumn()
+    
     class Meta(NetBoxTable.Meta):
         model = Contract
         fields = (
@@ -237,11 +238,13 @@ class ContractListTable(NetBoxTable):
             'comments',
             'assgined_count',
             'actions',
+            'contract_status',
         )
         default_columns = (
             'pk',
             'name',
             'contract_type',
+            'contract_status',
             'provider',
             'provider_account',
             'start_date',

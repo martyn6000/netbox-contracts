@@ -218,7 +218,7 @@ class Contract(ContactsMixin,NetBoxModel):
         to='netbox_contracts.ContractType',
         on_delete=models.PROTECT,
         related_name='contracts',
-        blank=True,
+        blank=False,
         null=True,
         verbose_name=_('contract type'),
     )
@@ -343,3 +343,22 @@ class Contract(ContactsMixin,NetBoxModel):
     
     def get_absolute_url(self):
         return reverse('plugins:netbox_contracts:contract', args=[self.pk])
+
+    @property
+    def contract_status(self):
+        today = date.today()
+        start = self.start_date
+        end = self.end_date
+        
+        if not start:
+            return "Unknown"
+
+        if today < start:
+            return "Future"
+        elif today > end:
+            return "Expired"
+        else:
+            return "Active"
+
+    def get_contract_status_color(self):
+        return StatusChoices.colors.get(self.contract_status)

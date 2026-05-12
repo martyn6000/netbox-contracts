@@ -17,7 +17,6 @@ from utilities.forms.fields import (
     CSVModelChoiceField,
     DynamicModelChoiceField,
     TagFilterField,
-    DynamicModelMultipleChoiceField,
 )
 from utilities.forms.widgets import DatePicker, HTMXSelect
 from .models import (
@@ -29,6 +28,8 @@ from .models import (
 )
 plugin_settings = settings.PLUGINS_CONFIG['netbox_contracts']
 
+
+
 # Contract
 class ContractForm(NetBoxModelForm):
     parent = DynamicModelChoiceField(
@@ -38,16 +39,18 @@ class ContractForm(NetBoxModelForm):
         label=_('Parent'),
     )
     contract_type = DynamicModelChoiceField(
-        queryset=ContractType.objects.all(), required=True, selector=True, label=_('Contract type')
+        queryset=ContractType.objects.all(),
+        required=True,
+        selector=True, 
+        quick_add=True,
+        label=_('Contract Type')
     )
-
     provider = DynamicModelChoiceField(
         label=_('Provider'),
         queryset=Provider.objects.all(),
         selector=True,
         quick_add=True
     )
-    
     provider_account = DynamicModelChoiceField(
         label=_('Provider account'),
         queryset=ProviderAccount.objects.all(),
@@ -58,8 +61,8 @@ class ContractForm(NetBoxModelForm):
     )
     comments = CommentField()
 
+
     def __init__(self, *args, **kwargs):
-        initial = kwargs.get('initial', None)
         super().__init__(*args, **kwargs)
 
     class Meta:
@@ -125,7 +128,6 @@ class ContractFilterForm(NetBoxModelFilterSetForm):
     tag = TagFilterField(model)
 
     def __init__(self, *args, **kwargs):
-        initial = kwargs.get('initial', None)
         super().__init__(*args, **kwargs)
 
 class ContractCSVForm(NetBoxModelImportForm):
@@ -283,9 +285,9 @@ class ContractAssignmentForm(NetBoxModelForm):
         model = ContractAssignment
         fields = [
             'contract', 
-            'end_date',
             'object_type',
             'object', 
+            'end_date',
             'yrc',
             'nrc',
             'sla',
