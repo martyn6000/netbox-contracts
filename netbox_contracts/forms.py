@@ -17,6 +17,7 @@ from utilities.forms.fields import (
     CSVModelChoiceField,
     DynamicModelChoiceField,
     TagFilterField,
+    DynamicModelMultipleChoiceField,
 )
 from utilities.forms.widgets import DatePicker, HTMXSelect
 from .models import (
@@ -339,6 +340,10 @@ class ContractAssignmentFilterForm(NetBoxModelFilterSetForm):
             'provider_id': '$fe',
         }
     )
+    # object_id = forms.CharField(
+    #     help_text='ID of the object to be imported',
+    #     label=_('Object ID')
+    # )
 
 class ContractAssignmentImportForm(NetBoxModelImportForm):
     object_type = CSVContentTypeField(
