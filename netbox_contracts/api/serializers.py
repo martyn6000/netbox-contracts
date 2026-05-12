@@ -1,15 +1,12 @@
-from django.contrib.auth.models import ContentType
-from drf_yasg.utils import swagger_serializer_method
-from netbox.api.fields import ContentTypeField
 from netbox.api.serializers import NetBoxModelSerializer, WritableNestedSerializer
 from rest_framework import serializers
-from utilities.api import get_serializer_for_model
 from ..models import (
     Contract,
     ContractAssignment,
     ContractType,
     ServiceLevelAgreement,
 )
+from dcim.api.serializers import DeviceSerializer
 
 class NestedContractSerializer(WritableNestedSerializer):
     url = serializers.HyperlinkedIdentityField(
@@ -41,16 +38,6 @@ class NestedContractSerializer(WritableNestedSerializer):
             'last_updated',
         )
 
-    @swagger_serializer_method(serializer_or_field=serializers.JSONField)
-    def get_external_party_object(self, instance):
-        serializer = get_serializer_for_model(
-            instance.external_party_object_type.model_class()
-        )
-        context = {'request': self.context['request']}
-        return serializer(
-            instance.external_party_object, nested=True, context=context
-        ).data
-
 class ContractTypeSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_contracts-api:contracttype-detail')
 
@@ -81,7 +68,6 @@ class ContractSerializer(NetBoxModelSerializer):
         model = Contract
         fields = (
             'id',
-            'url',
             'display',
             'name',
             'contract_type',
@@ -95,8 +81,8 @@ class ContractSerializer(NetBoxModelSerializer):
             'nrc',
             'comments',
             'parent',
-            'tags',
             'custom_fields',
+            'tags',
             'created',
             'last_updated',
         )
@@ -117,44 +103,30 @@ class ContractSerializer(NetBoxModelSerializer):
             'parent',
         )
 
-    @swagger_serializer_method(serializer_or_field=serializers.JSONField)
-    def get_external_party_object(self, instance):
-        serializer = get_serializer_for_model(
-            instance.external_party_object_type.model_class()
-        )
-        context = {'request': self.context['request']}
-        return serializer(
-            instance.external_party_object, nested=True, context=context
-        ).data
-
 class ContractAssignmentSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='plugins-api:netbox_contracts-api:contractassignment-detail'
     )
-    object_type = ContentTypeField(queryset=ContentType.objects.all())
-    object = serializers.SerializerMethodField(read_only=True)
-    contract = NestedContractSerializer()
-
     class Meta:
         model = ContractAssignment
         fields = (
             'id',
-            'url',
             'display',
-            'object_type',
-            'object',
             'contract',
+            'object_type',
+            'object_id',
+            'end_date',
+            'yrc',
+            'nrc',
+            'sla',
+            'fe',
+            'fe_account',
+            'custom_fields',
+            'tags',
             'created',
             'last_updated',
         )
-        brief_fields = ('id', 'url', 'display', 'object', 'contract')
 
-    @swagger_serializer_method(serializer_or_field=serializers.JSONField)
-    def get_object(self, instance):
-        serializer = get_serializer_for_model(instance.object_type.model_class())
-        context = {'request': self.context['request']}
-        return serializer(instance.object, nested=True, context=context).data
-    
 class ServiceLevelAgreementSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='plugins-api:netbox_contracts-api:servicelevelagreement-detail'
@@ -163,7 +135,6 @@ class ServiceLevelAgreementSerializer(NetBoxModelSerializer):
     class Meta:
         model = ServiceLevelAgreement
         fields = (
-            'pk',
             'id',
             'name',
             'description',

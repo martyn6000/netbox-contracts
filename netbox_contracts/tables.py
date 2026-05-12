@@ -96,7 +96,6 @@ class ContractAssignmentListTable(NetBoxTable):
     object_type = columns.ContentTypeColumn(verbose_name='Object Type')
     object = tables.Column(linkify=True, orderable=False)
     actions = columns.ActionsColumn(actions=('edit', 'delete'))
-    start_date = tables.Column(linkify=True)
     end_date = tables.Column(linkify=True)
     yrc = tables.Column(linkify=True)
     nrc = tables.Column(linkify=True)
@@ -106,7 +105,7 @@ class ContractAssignmentListTable(NetBoxTable):
     tags = columns.TagColumn(url_name='plugins:netbox_contracts:contractassignment_list')
     contract__provider = tables.Column(linkify=True)
     contract__contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
-    object__region = tables.Column(linkify=True)
+    # object__region = tables.Column(linkify=True)
     assignment_status = ChoiceFieldColumn()
     device_serial = tables.Column(
         accessor='object.serial',
@@ -116,11 +115,9 @@ class ContractAssignmentListTable(NetBoxTable):
     class Meta(NetBoxTable.Meta):
         model = ContractAssignment
         fields = (
-            'pk',
             'contract',
             'object_type',
             'object',
-            'start_date',
             'end_date',
             'yrc',
             'nrc',
@@ -129,29 +126,25 @@ class ContractAssignmentListTable(NetBoxTable):
             'fe_account',
             'contract__provider',
             'contract__contract_type',
-            'contract__object_type',
-            'object__region',
             'actions',
             'comments',
             'assignment_status',
             'device_serial',
         )
         default_columns = (
-            'pk',
             'contract',
+            'contract__contract_type',
+            'contract__provider',
             'assignment_status',
             'object_type',
             'object',
-            'start_date',
+            'device_serial',
             'end_date',
             'yrc',
             'nrc',
             'sla',
             'fe',
             'fe_account',
-            'contract__provider',
-            'object__region',
-            'device_serial',
         )
 
 class ContractAssignmentObjectTable(NetBoxTable):
@@ -175,29 +168,31 @@ class ContractAssignmentObjectTable(NetBoxTable):
     class Meta(NetBoxTable.Meta):
         model = ContractAssignment
         fields = (
-            'pk',
-            'assignment_status',
             'contract',
-            'contract__provider',
-            'contract__provider_account',
-            'contract__contract_type',
             'end_date',
             'yrc',
             'nrc',
-            'comments',
-            'actions',
+            'sla',
             'fe',
             'fe_account',
+            'contract__provider',
+            'contract__provider_account',
+            'contract__contract_type',
+            'actions',
+            'comments',
+            'assignment_status',
         )
         default_columns = (
-            'pk',
-            'assignment_status',
             'contract',
-            'contract__object_type',
-            'contract__provider',
             'contract__contract_type',
+            'contract__provider',
+            'assignment_status',
             'end_date',
+            'yrc',
+            'nrc',
+            'sla',
             'fe',
+            'fe_account',
         )
         order_by = ('contract__status')
 

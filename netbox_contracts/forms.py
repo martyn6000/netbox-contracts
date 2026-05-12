@@ -19,7 +19,6 @@ from utilities.forms.fields import (
     TagFilterField,
 )
 from utilities.forms.widgets import DatePicker, HTMXSelect
-from .constants import ASSIGNMENT_MODELS
 from .models import (
     Contract,
     ContractAssignment,
@@ -232,10 +231,8 @@ class ContractTypeFilterForm(NetBoxModelFilterSetForm):
 
 # ContractAssignment
 class ContractAssignmentForm(NetBoxModelForm):
-
     object_type = ContentTypeChoiceField(
         queryset=ContentType.objects.all(),
-        limit_choices_to=ASSIGNMENT_MODELS,
         widget=HTMXSelect(),
         label=_('Object Type'),
     )
@@ -346,19 +343,22 @@ class ContractAssignmentFilterForm(NetBoxModelFilterSetForm):
 class ContractAssignmentImportForm(NetBoxModelImportForm):
     object_type = CSVContentTypeField(
         queryset=ContentType.objects.all(),
-        limit_choices_to=ASSIGNMENT_MODELS,
         help_text='Content Type in the form <app>.<model>',
         label=_('Content type'),
     )
     contract = CSVModelChoiceField(
         queryset=Contract.objects.all(),
-        help_text='Contract id',
+        help_text='ID of the contract to be imported',
         label=_('Contract'),
     )
-
+    object_id = forms.CharField(
+        required=True,
+        help_text='ID of the object to be imported',
+        label=_('Object ID')
+    )
     class Meta:
         model = ContractAssignment
-        fields = ['object_type', 'contract', 'tags']
+        fields = ['contract','object_type','object_id', 'tags']
 
 class ContractAssignmentBulkEditForm(NetBoxModelBulkEditForm):
     contract = DynamicModelChoiceField(

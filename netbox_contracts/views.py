@@ -112,12 +112,6 @@ class ContractAssignmentEditView(generic.ObjectEditView):
             obj.object_type = ContentType.objects.get(
                 id=object_type_id
             )
-            object_type = obj.object_type
-            obj.external_party_object = (
-                object_type.get_object_for_this_type(
-                    id=obj.object_id
-                )
-            )
 
         return obj
 
