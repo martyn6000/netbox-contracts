@@ -4,7 +4,7 @@ class ContractsConfig(PluginConfig):
     name = 'netbox_contracts'
     verbose_name = 'SCB Netbox contract'
     description = 'SCB Contract management plugin for Netbox'
-    version = '1.7'
+    version = '1.7.1'
     author = 'Martyn Stanton'
     author_email = 'marrtynstanton@hotmail.com'
     base_url = 'scb'
