@@ -78,10 +78,11 @@ class ContractForm(NetBoxModelForm):
             'currency',
             'yrc',
             'nrc',
-            'parent',
             'documents',
+            'parent',
             'comments',
             'tags',
+            'custom_fields',
         )
 
         widgets = {
@@ -180,6 +181,30 @@ class ContractBulkEditForm(NetBoxModelBulkEditForm):
         selector=True,
         label=_('Contract Type')
     )
+    provider = DynamicModelChoiceField(
+        queryset=Provider.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Provider'),
+    )
+    provider_account = DynamicModelChoiceField(
+        queryset=ProviderAccount.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Provider Account'),
+    )
+    start_date = forms.DateField(required=False, label=_('Start Date'), widget=DatePicker())
+    end_date = forms.DateField(required=False, label=_('End Date'), widget=DatePicker())
+    notice_period = forms.IntegerField(required=False, label=_('Notice Period'))
+    currency = DynamicModelChoiceField(
+        queryset=Currency.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Currency'),
+    )
+    yrc = forms.DecimalField(required=False, label=_('Yearly Recurring Cost'))
+    nrc = forms.DecimalField(required=False, label=_('Non-Recurring Cost'))
+    documents = forms.URLField(required=False, label=_('Documents URL'))
     comments = CommentField(required=False, label=_('Comments'))
     parent = DynamicModelChoiceField(
         queryset=Contract.objects.all(),
@@ -187,8 +212,7 @@ class ContractBulkEditForm(NetBoxModelBulkEditForm):
         selector=True,
         label=_('Parent'),
     )
-
-    nullable_fields = ('comments',)
+    nullable_fields = ('comments', 'documents', 'yrc', 'nrc', 'provider_account')
     model = Contract
 
     def __init__(self, *args, **kwargs):
@@ -197,6 +221,7 @@ class ContractBulkEditForm(NetBoxModelBulkEditForm):
 # ContractType
 class ContractTypeForm(NetBoxModelForm):
     color = ColorField(label=_('Color'))
+    comments = CommentField(required=False)
 
     class Meta:
         model = ContractType
@@ -204,22 +229,26 @@ class ContractTypeForm(NetBoxModelForm):
             'name',
             'description',
             'color',
+            'comments',
             'tags',
+            'custom_fields',
         )
 
 class ContractTypeCSVForm(NetBoxModelImportForm):
     name = forms.CharField(max_length=100, label=_('Name'))
-    description = CommentField(label=_('Description'))
-    color = ColorField(label=_('Color'))
+    description = CommentField(label=_('Description'), required=False)
+    color = ColorField(label=_('Color'), required=False)
+    comments = CommentField(label=_('Comments'), required=False)
 
     class Meta:
         model = ContractType
-        fields = ['name', 'description', 'color']
+        fields = ['name', 'description', 'color', 'comments']
 
 class ContractTypeBulkEditForm(NetBoxModelBulkEditForm):
-    description = CommentField(label=_('Description'))
-    nullable_fields = ('comments',)
-    color = ColorField(label=_('Color'), required=False,)
+    description = CommentField(label=_('Description'), required=False)
+    color = ColorField(label=_('Color'), required=False)
+    comments = CommentField(label=_('Comments'), required=False)
+    nullable_fields = ('description', 'comments')
     model = ContractType
 
 class ContractTypeFilterForm(NetBoxModelFilterSetForm):
@@ -235,22 +264,58 @@ class ContractAssignmentForm(NetBoxModelForm):
         label=_('Object Type'),
     )
     object = forms.ModelChoiceField(
-        queryset=None, 
+        queryset=None,
         label=_('Object')
     )
-    fe = DynamicModelChoiceField(
-        label=_('FE Vendor'),
+    contract = DynamicModelChoiceField(
+        queryset=Contract.objects.all(),
+        required=True,
+        selector=True,
+        label=_('Contract'),
+    )
+    currency = DynamicModelChoiceField(
+        queryset=Currency.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Currency'),
+    )
+    sla = DynamicModelChoiceField(
+        queryset=ServiceLevelAgreement.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Service Level Agreement'),
+    )
+    provider = DynamicModelChoiceField(
         queryset=Provider.objects.all(),
         required=False,
-    ) 
-    fe_account = DynamicModelChoiceField(
-        label=_('FE Vendor account'),
+        selector=True,
+        label=_('Provider'),
+    )
+    provider_account = DynamicModelChoiceField(
         queryset=ProviderAccount.objects.all(),
         required=False,
+        selector=True,
+        label=_('Provider Account'),
+        query_params={
+            'provider_id': '$provider',
+        }
+    )
+    fe = DynamicModelChoiceField(
+        label=_('Field Engineer Provider'),
+        queryset=Provider.objects.all(),
+        required=False,
+        help_text=_('Field Engineer provider responsible for this assignment'),
+    )
+    fe_account = DynamicModelChoiceField(
+        label=_('Field Engineer Account'),
+        queryset=ProviderAccount.objects.all(),
+        required=False,
+        help_text=_('Field Engineer account details'),
         query_params={
             'provider_id': '$fe',
         }
     )
+    comments = CommentField(required=False)
     
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial', None)
@@ -279,16 +344,21 @@ class ContractAssignmentForm(NetBoxModelForm):
     class Meta:
         model = ContractAssignment
         fields = [
-            'contract', 
+            'contract',
             'object_type',
-            'object', 
+            'object',
             'end_date',
+            'currency',
             'yrc',
             'nrc',
             'sla',
+            'provider',
+            'provider_account',
             'fe',
             'fe_account',
-            'tags'
+            'comments',
+            'tags',
+            'custom_fields',
         ]
 
         widgets = {
@@ -324,15 +394,15 @@ class ContractAssignmentFilterForm(NetBoxModelFilterSetForm):
         queryset=Provider.objects.all(),
         required=False,
         selector=True,
-        label=_('FE Vendor'),
-        help_text=_('Filter by FE Vendor'),
+        label=_('Field Engineer Provider'),
+        help_text=_('Filter by Field Engineer provider'),
     )
     fe_account = DynamicModelChoiceField(
         queryset=ProviderAccount.objects.all(),
         required=False,
         selector=True,
-        label=_('FE Vendor Account'),
-        help_text=_('Filter by FE Vendor Account'),
+        label=_('Field Engineer Account'),
+        help_text=_('Filter by Field Engineer account'),
         query_params={
             'provider_id': '$fe',
         }
@@ -369,15 +439,56 @@ class ContractAssignmentBulkEditForm(NetBoxModelBulkEditForm):
         selector=True,
         label=_('Contract'),
     )
+    end_date = forms.DateField(required=False, label=_('End Date'), widget=DatePicker())
+    currency = DynamicModelChoiceField(
+        queryset=Currency.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Currency'),
+    )
+    yrc = forms.DecimalField(required=False, label=_('Yearly Recurring Cost'))
+    nrc = forms.DecimalField(required=False, label=_('Non-Recurring Cost'))
+    sla = DynamicModelChoiceField(
+        queryset=ServiceLevelAgreement.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Service Level Agreement'),
+    )
+    provider = DynamicModelChoiceField(
+        queryset=Provider.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Provider'),
+    )
+    provider_account = DynamicModelChoiceField(
+        queryset=ProviderAccount.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Provider Account'),
+    )
+    fe = DynamicModelChoiceField(
+        queryset=Provider.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Field Engineer Provider'),
+    )
+    fe_account = DynamicModelChoiceField(
+        queryset=ProviderAccount.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Field Engineer Account'),
+    )
+    comments = CommentField(required=False, label=_('Comments'))
+    nullable_fields = ('end_date', 'comments', 'yrc', 'nrc')
     model = ContractAssignment
 
 # Service Level Agreement
 class ServiceLevelAgreementForm(NetBoxModelForm):
-    comments = CommentField()
+    comments = CommentField(required=False)
 
     class Meta:
         model = ServiceLevelAgreement
-        fields = ['name', 'description', 'comments', 'tags']
+        fields = ['name', 'description', 'comments', 'tags', 'custom_fields']
 
 class ServiceLevelAgreementFilterForm(NetBoxModelFilterSetForm):
     model = ContractAssignment
@@ -391,23 +502,25 @@ class ServiceLevelAgreementFilterForm(NetBoxModelFilterSetForm):
 class ServiceLevelAgreementImportForm(NetBoxModelImportForm):
     name = forms.CharField(required=False, label='SLA Name')
     description = forms.CharField(required=False, label='Description')
-    model = ServiceLevelAgreement
+    comments = forms.CharField(required=False, label='Comments')
 
     class Meta:
         model = ServiceLevelAgreement
-        fields = ['name', 'description', 'tags']
+        fields = ['name', 'description', 'comments', 'tags']
 
 class ServiceLevelAgreementBulkEditForm(NetBoxModelBulkEditForm):
     description = forms.CharField(required=False, label='Description')
+    comments = CommentField(required=False, label='Comments')
+    nullable_fields = ('description', 'comments')
     model = ServiceLevelAgreement
 
 # Currency
 class CurrencyForm(NetBoxModelForm):
-    comments = CommentField()
+    comments = CommentField(required=False)
 
     class Meta:
         model = Currency
-        fields = ['currency_code','country','currency_name','currency_number','usd_rate']
+        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate', 'comments', 'tags', 'custom_fields']
 
 class CurrencyFilterForm(NetBoxModelFilterSetForm):
     model = Currency

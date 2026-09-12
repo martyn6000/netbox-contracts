@@ -2,7 +2,7 @@ from setuptools import setup,find_packages
 
 setup(
     name='netbox-contracts',
-    version='1.7.1',
+    version='1.8',
     description='Custom plugin for Contract management',
     install_requires=[],
     packages=find_packages(),

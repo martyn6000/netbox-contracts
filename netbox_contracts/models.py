@@ -84,7 +84,7 @@ class Currency(NetBoxModel):
         null=True
     )
     currency_name = models.CharField(
-        max_length = 3,
+        max_length = 100,
         verbose_name=_('currency name')
     )
     currency_number = models.CharField(
@@ -183,14 +183,18 @@ class ContractAssignment(NetBoxModel):
             on_delete=models.PROTECT,
             related_name='fe',
             blank=True,
-            null=True
+            null=True,
+            verbose_name=_('field engineer provider'),
+            help_text=_('Field Engineer provider responsible for this assignment'),
         )
     fe_account = models.ForeignKey(
         to=ProviderAccount,
         on_delete=models.PROTECT,
         related_name='feaccount',
         blank=True,
-        null=True
+        null=True,
+        verbose_name=_('field engineer account'),
+        help_text=_('Field Engineer account details'),
     )
     comments = models.TextField(
         blank=True,
