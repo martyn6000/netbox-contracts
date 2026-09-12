@@ -10,11 +10,11 @@ from .models import (
     ServiceLevelAgreement,
 )
 __all__ = (
-    'NestedGroupModelFilterSetForm',
-    'NetBoxModelFilterSetForm',
-    'OrganizationalModelFilterSetForm',
-    'ProviderAccountFilterSet',
-    'ProviderFilterSet',
+    'ContractFilterSet',
+    'ContractTypeFilterSet',
+    'ServiceLevelAgreementFilterSet',
+    'ContractAssignmentFilterSet',
+    'CurrencyFilterSet',
 )
 
 class ContractFilterSet(NetBoxModelFilterSet):
@@ -30,7 +30,7 @@ class ContractFilterSet(NetBoxModelFilterSet):
         fields = (
             'id',
             'name',
-            'currency',
+            'currency_id',
             'contract_type',
             'parent',
         )

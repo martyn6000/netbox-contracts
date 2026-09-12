@@ -75,14 +75,13 @@ class ContractForm(NetBoxModelForm):
             'start_date',
             'end_date',
             'notice_period',
-            'currency',
+            'currency_id',
             'yrc',
             'nrc',
             'documents',
             'parent',
             'comments',
             'tags',
-            'custom_fields',
         )
 
         widgets = {
@@ -166,7 +165,7 @@ class ContractCSVForm(NetBoxModelImportForm):
             'start_date',
             'end_date',
             'notice_period',
-            'currency',
+            'currency_id',
             'yrc',
             'nrc',
             'documents',
@@ -196,7 +195,7 @@ class ContractBulkEditForm(NetBoxModelBulkEditForm):
     start_date = forms.DateField(required=False, label=_('Start Date'), widget=DatePicker())
     end_date = forms.DateField(required=False, label=_('End Date'), widget=DatePicker())
     notice_period = forms.IntegerField(required=False, label=_('Notice Period'))
-    currency = DynamicModelChoiceField(
+    currency_id = DynamicModelChoiceField(
         queryset=Currency.objects.all(),
         required=False,
         selector=True,
@@ -231,7 +230,6 @@ class ContractTypeForm(NetBoxModelForm):
             'color',
             'comments',
             'tags',
-            'custom_fields',
         )
 
 class ContractTypeCSVForm(NetBoxModelImportForm):
@@ -348,7 +346,7 @@ class ContractAssignmentForm(NetBoxModelForm):
             'object_type',
             'object',
             'end_date',
-            'currency',
+            'currency_id',
             'yrc',
             'nrc',
             'sla',
@@ -358,7 +356,6 @@ class ContractAssignmentForm(NetBoxModelForm):
             'fe_account',
             'comments',
             'tags',
-            'custom_fields',
         ]
 
         widgets = {
@@ -488,7 +485,7 @@ class ServiceLevelAgreementForm(NetBoxModelForm):
 
     class Meta:
         model = ServiceLevelAgreement
-        fields = ['name', 'description', 'comments', 'tags', 'custom_fields']
+        fields = ['name', 'description', 'comments', 'tags']
 
 class ServiceLevelAgreementFilterForm(NetBoxModelFilterSetForm):
     model = ContractAssignment
@@ -520,7 +517,7 @@ class CurrencyForm(NetBoxModelForm):
 
     class Meta:
         model = Currency
-        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate', 'comments', 'tags', 'custom_fields']
+        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate', 'comments', 'tags']
 
 class CurrencyFilterForm(NetBoxModelFilterSetForm):
     model = Currency

@@ -96,7 +96,7 @@ class ContractAssignmentListTable(NetBoxTable):
     contract = tables.Column(linkify=True)
     object_type = columns.ContentTypeColumn(verbose_name='Object Type')
     object = tables.Column(linkify=True, orderable=False)
-    currency = tables.Column(linkify=True)
+    currency_id = tables.Column(linkify=True)
     yrc = tables.Column(verbose_name='Yearly recurring cost')
     nrc = tables.Column(verbose_name='Non-recurring cost')
     sla = tables.Column(linkify=True)
@@ -120,7 +120,7 @@ class ContractAssignmentListTable(NetBoxTable):
             'object_type',
             'object',
             'end_date',
-            'currency',
+            'currency_id',
             'yrc',
             'nrc',
             'sla',
@@ -147,7 +147,7 @@ class ContractAssignmentListTable(NetBoxTable):
             'object',
             'device_serial',
             'end_date',
-            'currency',
+            'currency_id',
             'yrc',
             'nrc',
             'sla',
@@ -206,7 +206,7 @@ class ContractListTable(NetBoxTable):
     name = tables.Column(linkify=True)
     provider = tables.Column(linkify=True)
     parent = tables.Column(linkify=True)
-    currency = tables.Column(linkify=True)
+    currency_id = tables.Column(linkify=True)
     yrc = tables.Column(verbose_name='Yearly recurring costs')
     nrc = tables.Column(verbose_name='Non-recurring costs')
     contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
@@ -232,7 +232,7 @@ class ContractListTable(NetBoxTable):
             'start_date',
             'end_date',
             'notice_period',
-            'currency',
+            'currency_id',
             'yrc',
             'nrc',
             'documents',
@@ -253,7 +253,7 @@ class ContractListTable(NetBoxTable):
             'provider',
             'start_date',
             'end_date',
-            'currency',
+            'currency_id',
             'yrc',
             'nrc',
             'assgined_count',

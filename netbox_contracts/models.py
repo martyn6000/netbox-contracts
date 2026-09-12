@@ -132,7 +132,7 @@ class ContractAssignment(NetBoxModel):
         verbose_name=_('end date'),        
         help_text=_('A unique end date varying from the contract'),
         )
-    currency = models.ForeignKey(
+    currency_id = models.ForeignKey(
         to=Currency,
         on_delete=models.SET_NULL,
         blank=True,
@@ -207,6 +207,7 @@ class ContractAssignment(NetBoxModel):
         'sla',
         'fe',
         'fe_account',
+        'currency_id'
     )
 
     class Meta:
@@ -284,7 +285,7 @@ class Contract(ContactsMixin,NetBoxModel):
         blank=True,
         null=True
     )
-    currency = models.ForeignKey(
+    currency_id = models.ForeignKey(
         to=Currency,
         on_delete=models.SET_NULL,
         blank=True,
@@ -323,7 +324,7 @@ class Contract(ContactsMixin,NetBoxModel):
     comments = models.TextField(
         blank=True,
     )
-    clone_fields = ('contract_type', 'provider', 'provider_account', 'start_date', 'end_date', 'notice_period','currency', 'yrc', 'nrc', 'parent', 'documents' )
+    clone_fields = ('contract_type', 'provider', 'provider_account', 'start_date', 'end_date', 'notice_period','currency_id', 'yrc', 'nrc', 'parent', 'documents' )
 
     def notice_date(self):
         return self.end_date - timedelta(days=self.notice_period)
@@ -360,20 +361,20 @@ class Contract(ContactsMixin,NetBoxModel):
 
     @property
     def usd_yrc_costs(self):
-        usd_yrc = self.currency.usd_rate * self.yrc
+        usd_yrc = self.currency_id.usd_rate * self.yrc
         return usd_yrc
 
     @property
     def usd_nrc_costs(self):
-        usd_nrc = self.currency.usd_rate * self.nrc
+        usd_nrc = self.currency_id.usd_rate * self.nrc
         return usd_nrc
 
     @property
     def nrc_usd(self):
-        if self.nrc is None or self.currency is None or self.currency.usd_rate is None:
+        if self.nrc is None or self.currency_id is None or self.currency_id.usd_rate is None:
             return None
 
-        return self.nrc * self.currency.usd_rate
+        return self.nrc * self.currency_id.usd_rate
     
     class Meta:
         ordering = ['name',]
@@ -410,10 +411,10 @@ class Contract(ContactsMixin,NetBoxModel):
 
     @property
     def yrc_usd(self):
-        if not self.yrc or not self.currency or not self.currency.usd_rate:
+        if not self.yrc or not self.currency_id or not self.currency_id.usd_rate:
             return None
 
-        return self.yrc * self.currency.usd_rate
+        return self.yrc * self.currency_id.usd_rate
 
     def get_contract_status_color(self):
         return StatusChoices.colors.get(self.contract_status)
