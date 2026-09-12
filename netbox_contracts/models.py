@@ -10,7 +10,7 @@ from netbox.models.features import ContactsMixin
 from utilities.choices import ChoiceSet
 from utilities.fields import ColorField
 from circuits.models import Provider, ProviderAccount
-
+from dcim.models import Region
 
 class StatusChoices(ChoiceSet):
     ACTIVE = 'Active'
@@ -24,18 +24,6 @@ class StatusChoices(ChoiceSet):
         (FUTURE, 'Future', 'blue'),
         (UNKNOWN,'Unknown','gray'),
     ]
-
-class CurrencyChoices(ChoiceSet):
-    key = 'Contract.currency'
-    CURRENCY_USD = 'usd'
-
-    CHOICES = [
-        (CURRENCY_USD, 'USD'),
-        ('eur', 'EUR'),
-        ('chf', 'CHF'),
-    ]
-
-CURRENCY_DEFAULT = CurrencyChoices.CHOICES[0][0]
 
 class ContractType(NetBoxModel):
     name = models.CharField(
@@ -84,6 +72,36 @@ class ServiceLevelAgreement(NetBoxModel):
     def __str__(self):
         return self.name
 
+class Currency(NetBoxModel):
+    currency_code = models.CharField(
+        max_length = 3,
+        verbose_name=_('currency code')
+    )
+    country = models.ForeignKey(
+        to=Region,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True
+    )
+    currency_name = models.CharField(
+        max_length = 3,
+        verbose_name=_('currency name')
+    )
+    currency_number = models.CharField(
+        max_length=3,
+        verbose_name=('currency number')
+    )
+    usd_rate = models.DecimalField(
+        decimal_places=2,
+        max_digits=8,
+        null=True,
+        blank=True,
+        help_text=_('The exchange rate to convert the currency into USD.')
+    )
+
+    class Meta:
+        ordering = ('currency_code',)
+
 class ContractAssignment(NetBoxModel):
     contract = models.ForeignKey(
         to='Contract',
@@ -114,6 +132,15 @@ class ContractAssignment(NetBoxModel):
         verbose_name=_('end date'),        
         help_text=_('A unique end date varying from the contract'),
         )
+    currency = models.ForeignKey(
+        to=Currency,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='contract_assignments',
+        verbose_name=_('currency'),
+        help_text=_('Currency for this contract assignment')
+    )
     yrc = models.DecimalField(
             verbose_name=_('yearly recurring cost'),
             max_digits=10,
@@ -253,12 +280,12 @@ class Contract(ContactsMixin,NetBoxModel):
         blank=True,
         null=True
     )
-    currency = models.CharField(
-        max_length=3,
-        choices=CurrencyChoices,
-        default=CURRENCY_DEFAULT,
-        verbose_name=_('currency'),
+    currency = models.ForeignKey(
+        to=Currency,
+        on_delete=models.SET_NULL,
         blank=True,
+        null=True,
+        help_text=_('Enter the local currency for the contract')
     )
     yrc = models.DecimalField(
         verbose_name=_('yearly recurring cost'),
@@ -327,6 +354,23 @@ class Contract(ContactsMixin,NetBoxModel):
         else:
             return "gray"
 
+    @property
+    def usd_yrc_costs(self):
+        usd_yrc = self.currency.usd_rate * self.yrc
+        return usd_yrc
+
+    @property
+    def usd_nrc_costs(self):
+        usd_nrc = self.currency.usd_rate * self.nrc
+        return usd_nrc
+
+    @property
+    def nrc_usd(self):
+        if self.nrc is None or self.currency is None or self.currency.usd_rate is None:
+            return None
+
+        return self.nrc * self.currency.usd_rate
+    
     class Meta:
         ordering = ['name',]
         constraints = (
@@ -359,6 +403,13 @@ class Contract(ContactsMixin,NetBoxModel):
             return "Expired"
         else:
             return "Active"
+
+    @property
+    def yrc_usd(self):
+        if not self.yrc or not self.currency or not self.currency.usd_rate:
+            return None
+
+        return self.yrc * self.currency.usd_rate
 
     def get_contract_status_color(self):
         return StatusChoices.colors.get(self.contract_status)

@@ -6,7 +6,7 @@ from .models import (
     Contract,
     ContractAssignment,
     ContractType,
-    CurrencyChoices,
+    Currency,
     ServiceLevelAgreement,
 )
 __all__ = (
@@ -18,9 +18,9 @@ __all__ = (
 )
 
 class ContractFilterSet(NetBoxModelFilterSet):
-    currency = django_filters.MultipleChoiceFilter(
-        choices=CurrencyChoices, null_value=None
-    )
+    # currency = django_filters.MultipleChoiceFilter(
+    #     choices=CurrencyChoices, null_value=None
+    # )
     contract_type = django_filters.ModelMultipleChoiceFilter(
         field_name='contract_type__name', to_field_name='name', queryset=ContractType.objects.all()
     )
@@ -62,3 +62,9 @@ class ContractAssignmentFilterSet(NetBoxModelFilterSet):
 
     def search(self, queryset, name, value):
         return queryset.filter(Q(contract__name__icontains=value))
+
+class CurrencyFilterSet(NetBoxModelFilterSet):
+
+    class Meta:
+        model = Currency
+        fields = ('id', 'currency_code', 'country', 'currency_number', 'usd_rate')

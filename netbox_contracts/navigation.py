@@ -94,6 +94,21 @@ contractassingmenttype_buttons = [
     )
 ]
 
+currency_buttons = [
+    PluginMenuButton(
+        link='plugins:netbox_contracts:currency_add',
+        title=_('Add'),
+        icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_contract'],
+    ),
+    PluginMenuButton(
+        link='plugins:netbox_contracts:currency_bulk_import',
+        title=_('Import'),
+        icon_class="mdi mdi-upload",
+        permissions=['netbox_contracts.add_contract'],
+    )
+]
+
 contract_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:contract_list',
     link_text=_('Contracts'),
@@ -136,6 +151,13 @@ servicelevelagreement_menu_item = PluginMenuItem(
     permissions=['netbox_contracts.view_servicelevelagreement'],
 )
 
+currency_menu_item = PluginMenuItem(
+    link='plugins:netbox_contracts:currency_list',
+    link_text=_('Currency'),
+    buttons=currency_buttons,
+    permissions=['netbox_contracts.view_contract'],
+)
+
 items = (
     contract_menu_item,
     contracttype_menu_item,
@@ -143,6 +165,7 @@ items = (
     provideraccount_menu_item,
     servicelevelagreement_menu_item,
     contract_assignemnt_menu_item,
+    currency_menu_item,
 )
 
 if plugin_settings.get('top_level_menu'):

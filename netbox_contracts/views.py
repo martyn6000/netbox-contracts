@@ -16,6 +16,7 @@ from .models import (
     ContractAssignment,
     ContractType,
     ServiceLevelAgreement,
+    Currency,
 )
 from ipam.models import ASN
 from django.db.models.functions import Round
@@ -359,6 +360,47 @@ class ServiceLevelAgreementBulkDeleteView(generic.BulkDeleteView):
     queryset = ServiceLevelAgreement.objects.annotate()
     filterset = filtersets.ServiceLevelAgreementFilterSet
     table = tables.ServiceLevelAgreementListTable
+#
+# Currency views
+#
+@register_model_view(Currency)
+class CurrencyView(generic.ObjectView):
+    queryset = Currency.objects.all()
+
+@register_model_view(Currency, name='list')
+class CurrencyListView(generic.ObjectListView):
+    queryset = Currency.objects.all()
+    table = tables.CurrencyListTable
+    # filterset = filtersets.CurrencyFilterSet
+    # filterset_form = forms.CurrencyFilterForm
+
+@register_model_view(Currency, name='edit')
+class CurrencyEditView(generic.ObjectEditView):
+    queryset = Currency.objects.all()
+    form = forms.CurrencyForm
+
+@register_model_view(Currency, name='delete')
+class CurrencyDeleteView(generic.ObjectDeleteView):
+    queryset = Currency.objects.all()
+
+@register_model_view(Currency, name='bulk_import')
+class CurrencyBulkImportView(generic.BulkImportView):
+    queryset = Currency.objects.all()
+    model_form = forms.CurrencyForm
+    table = tables.CurrencyListTable
+
+@register_model_view(Currency, name='bulk_edit')
+class CurrencyBulkEditView(generic.BulkEditView):
+    queryset = Currency.objects.all()
+    filterset = filtersets.CurrencyFilterSet
+    table = tables.CurrencyListTable
+    form = forms.CurrencyBulkEditForm
+
+@register_model_view(Currency, name='bulk_delete')
+class CurrencyBulkDeleteView(generic.BulkDeleteView):
+    queryset = Currency.objects.all()
+    filterset = filtersets.CurrencyFilterSet
+    table = tables.ContractListTable
 #
 # Extentions to existing components
 #

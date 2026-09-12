@@ -3,7 +3,7 @@ from netbox.views.generic import ObjectChangeLogView
 from utilities.urls import get_model_urls
 from . import models, views
 
-urlpatterns = (
+urlpatterns = [
     # Providers
     path('providers/',
         include(
@@ -84,11 +84,15 @@ urlpatterns = (
         name='contract_assignment_list',
     ),
     # Service Level Agreements
-    path('servicelevelagreement/', views.ServiceLevelAgreementListView.as_view(), name='servicelevelagreement_list'),
-    path('servicelevelagreement/add/', views.ServiceLevelAgreementEditView.as_view(), name='servicelevelagreement_add'),
-    path('servicelevelagreement/import/', views.ServiceLevelAgreementBulkImportView.as_view(), name='servicelevelagreement_bulk_import'
+    path('servicelevelagreement/', 
+         views.ServiceLevelAgreementListView.as_view(), name='servicelevelagreement_list'),
+    path('servicelevelagreement/add/', 
+         views.ServiceLevelAgreementEditView.as_view(), name='servicelevelagreement_add'),
+    path('servicelevelagreement/import/', 
+         views.ServiceLevelAgreementBulkImportView.as_view(), name='servicelevelagreement_bulk_import'
     ),
-    path('servicelevelagreement/edit/', views.ServiceLevelAgreementBulkEditView.as_view(), name='servicelevelagreement_bulk_edit'
+    path('servicelevelagreement/edit/', 
+         views.ServiceLevelAgreementBulkEditView.as_view(), name='servicelevelagreement_bulk_edit'
     ),
     path('servicelevelagreement/delete/',
         views.ServiceLevelAgreementBulkDeleteView.as_view(),
@@ -98,7 +102,8 @@ urlpatterns = (
         include(get_model_urls('netbox_contracts', 'servicelevelagreement')),
         name='servicelevelagreement',
     ),
-    path('servicelevelagreement/<int:pk>/edit/', views.ServiceLevelAgreementEditView.as_view(), name='servicelevelagreement_edit'
+    path('servicelevelagreement/<int:pk>/edit/', 
+         views.ServiceLevelAgreementEditView.as_view(), name='servicelevelagreement_edit'
     ),
     path('servicelevelagreement/<int:pk>/delete/',
         views.ServiceLevelAgreementDeleteView.as_view(),
@@ -210,4 +215,42 @@ urlpatterns = (
     #     views.VirtualMachineContractsExpiredHTMXView.as_view(),
     #     name='virtualmachine_contracts_expired',
     # ),
-)
+    # Currency
+    path('currency/',
+        views.CurrencyListView.as_view(),
+        name='currency_list'
+    ),
+    path('currency/add/',
+        views.CurrencyEditView.as_view(),
+        name='currency_add'
+    ),
+    path('currency/import/',
+        views.CurrencyBulkImportView.as_view(),
+        name='currency_bulk_import',
+    ),
+    path('currency/edit/',
+        views.CurrencyBulkEditView.as_view(),
+        name='currency_bulk_edit',
+    ),
+    path('currency/delete/',
+        views.CurrencyBulkDeleteView.as_view(),
+        name='currency_bulk_delete',
+    ),
+    path('currency/<int:pk>/',
+        views.CurrencyListView.as_view(),
+        name='currency'
+    ),
+    path('currency/<int:pk>/edit/',
+        views.CurrencyEditView.as_view(),
+        name='currency_edit',
+    ),
+    path('currency/<int:pk>/delete/',
+        views.CurrencyDeleteView.as_view(),
+        name='currency_delete',
+    ),
+    path('currency/<int:pk>/changelog/',
+        ObjectChangeLogView.as_view(),
+        name='currency_changelog',
+        kwargs={'model': models.Currency},
+    ),
+    ]

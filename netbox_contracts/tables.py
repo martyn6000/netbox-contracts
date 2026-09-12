@@ -6,6 +6,7 @@ from .models import (
     ContractAssignment,
     ContractType,
     ServiceLevelAgreement,
+    Currency
 )
 from django_tables2.utils import Accessor
 
@@ -208,7 +209,6 @@ class ContractListTable(NetBoxTable):
     end_date = tables.Column(linkify=False)
     term = tables.Column(linkify=False)
     notice_period = tables.Column(linkify=False)
-    currency = tables.Column(linkify=False)
     nrc = tables.Column(linkify=False)
     documents = tables.Column(linkify=False)
     assgined_count = columns.LinkedCountColumn(
@@ -230,7 +230,6 @@ class ContractListTable(NetBoxTable):
             'end_date',
             'term',
             'notice_period'
-            'currency',
             'yrc',
             'nrc',
             'documents',
@@ -251,7 +250,6 @@ class ContractListTable(NetBoxTable):
             'end_date',
             'term',
             'notice_period'
-            'currency',
             'yrc',
             'nrc',
             'documents',
@@ -275,3 +273,17 @@ class ServiceLevelAgreementListTable(NetBoxTable):
             'actions',
         )
         default_columns = ('name', 'description')
+
+class CurrencyListTable(NetBoxTable):
+    currency_code = tables.Column(linkify=True)
+
+    class Meta(NetBoxTable.Meta):
+        model = Currency
+        fields = (
+            'currency_code',
+            'country',
+            'currency_name',
+            'usd_rate',
+            'currency_number',        
+        )
+        default_columns = ('currency_code', 'country', 'currency_name', 'usd_rate', 'currency_number', )

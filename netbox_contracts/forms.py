@@ -23,7 +23,7 @@ from .models import (
     Contract,
     ContractAssignment,
     ContractType,
-    CurrencyChoices,
+    Currency,
     ServiceLevelAgreement,
 )
 plugin_settings = settings.PLUGINS_CONFIG['netbox_contracts']
@@ -113,11 +113,6 @@ class ContractFilterForm(NetBoxModelFilterSetForm):
         query_params={
             'provider_id': '$provider',
         }
-    )
-    currency = forms.ChoiceField(
-        choices=[('', '-----')] + list(CurrencyChoices),
-        required=False,
-        label=_('Currency')
     )
     parent = DynamicModelChoiceField(
         queryset=Contract.objects.all(),
@@ -405,3 +400,23 @@ class ServiceLevelAgreementImportForm(NetBoxModelImportForm):
 class ServiceLevelAgreementBulkEditForm(NetBoxModelBulkEditForm):
     description = forms.CharField(required=False, label='Description')
     model = ServiceLevelAgreement
+
+# Currency
+class CurrencyForm(NetBoxModelForm):
+    comments = CommentField()
+
+    class Meta:
+        model = Currency
+        fields = ['currency_code','country','currency_name','currency_number','usd_rate']
+
+class CurrencyFilterForm(NetBoxModelFilterSetForm):
+    model = Currency
+    currency_code = DynamicModelChoiceField(
+        queryset=Currency.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Currency')
+    )
+
+class CurrencyBulkEditForm(NetBoxModelBulkEditForm):
+    model = Currency

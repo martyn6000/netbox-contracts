@@ -5,6 +5,7 @@ from ..models import (
     ContractAssignment,
     ContractType,
     ServiceLevelAgreement,
+    Currency,
 )
 from dcim.api.serializers import DeviceSerializer
 
@@ -139,4 +140,18 @@ class ServiceLevelAgreementSerializer(NetBoxModelSerializer):
             'name',
             'description',
             'comments',
+        )
+        
+class CurrencySerializer(NetBoxModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='plugins-api:netbox_contracts-api:currency-detail'
+    )
+
+    class Meta:
+        model = Currency
+        fields = (
+            'currency_code',
+            'currency_number',
+            'country',
+            'currency_name',
         )
