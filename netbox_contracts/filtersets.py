@@ -1,6 +1,8 @@
 import django_filters
 from django.db.models import Q
 from netbox.filtersets import NetBoxModelFilterSet
+from django_filters import ModelChoiceFilter
+from dcim.models import Region
 
 from .models import (
     Contract,
@@ -30,7 +32,7 @@ class ContractFilterSet(NetBoxModelFilterSet):
         fields = (
             'id',
             'name',
-            'currency_id',
+            'currency',
             'contract_type',
             'parent',
         )
@@ -64,7 +66,11 @@ class ContractAssignmentFilterSet(NetBoxModelFilterSet):
         return queryset.filter(Q(contract__name__icontains=value))
 
 class CurrencyFilterSet(NetBoxModelFilterSet):
-
+    country = ModelChoiceFilter(
+        field_name='country',
+        queryset=Region.objects.all(),
+        label='Country (ID)',
+    )
     class Meta:
         model = Currency
-        fields = ('id', 'currency_code', 'country', 'currency_number', 'usd_rate')
+        fields = ('id', 'currency_code','currency_name', 'country', 'currency_number', 'usd_rate')

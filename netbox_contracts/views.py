@@ -386,7 +386,7 @@ class CurrencyDeleteView(generic.ObjectDeleteView):
 @register_model_view(Currency, name='bulk_import')
 class CurrencyBulkImportView(generic.BulkImportView):
     queryset = Currency.objects.all()
-    model_form = forms.CurrencyForm
+    model_form = forms.CurrencyCSVForm
     table = tables.CurrencyListTable
 
 @register_model_view(Currency, name='bulk_edit')

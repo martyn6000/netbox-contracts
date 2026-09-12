@@ -35,12 +35,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='contractassignment',
-            name='currency_id',
+            name='currency',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='contract_assignments', to='netbox_contracts.currency'),
         ),
         migrations.AlterField(
             model_name='contract',
-            name='currency_id',
+            name='currency',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='netbox_contracts.currency'),
         ),
     ]

@@ -237,7 +237,7 @@ urlpatterns = [
         name='currency_bulk_delete',
     ),
     path('currency/<int:pk>/',
-        views.CurrencyListView.as_view(),
+        views.CurrencyView.as_view(),
         name='currency'
     ),
     path('currency/<int:pk>/edit/',

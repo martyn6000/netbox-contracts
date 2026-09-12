@@ -26,6 +26,7 @@ from .models import (
     Currency,
     ServiceLevelAgreement,
 )
+from dcim.models import Region
 plugin_settings = settings.PLUGINS_CONFIG['netbox_contracts']
 
 
@@ -75,7 +76,7 @@ class ContractForm(NetBoxModelForm):
             'start_date',
             'end_date',
             'notice_period',
-            'currency_id',
+            'currency',
             'yrc',
             'nrc',
             'documents',
@@ -165,7 +166,7 @@ class ContractCSVForm(NetBoxModelImportForm):
             'start_date',
             'end_date',
             'notice_period',
-            'currency_id',
+            'currency',
             'yrc',
             'nrc',
             'documents',
@@ -195,7 +196,7 @@ class ContractBulkEditForm(NetBoxModelBulkEditForm):
     start_date = forms.DateField(required=False, label=_('Start Date'), widget=DatePicker())
     end_date = forms.DateField(required=False, label=_('End Date'), widget=DatePicker())
     notice_period = forms.IntegerField(required=False, label=_('Notice Period'))
-    currency_id = DynamicModelChoiceField(
+    currency = DynamicModelChoiceField(
         queryset=Currency.objects.all(),
         required=False,
         selector=True,
@@ -346,7 +347,7 @@ class ContractAssignmentForm(NetBoxModelForm):
             'object_type',
             'object',
             'end_date',
-            'currency_id',
+            'currency',
             'yrc',
             'nrc',
             'sla',
@@ -514,10 +515,15 @@ class ServiceLevelAgreementBulkEditForm(NetBoxModelBulkEditForm):
 # Currency
 class CurrencyForm(NetBoxModelForm):
     comments = CommentField(required=False)
-
+    country = DynamicModelChoiceField(
+        queryset=Region.objects.all(),
+        required=False,
+        selector=True,
+        label=_('Country')
+    )
     class Meta:
         model = Currency
-        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate', 'comments', 'tags']
+        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate']
 
 class CurrencyFilterForm(NetBoxModelFilterSetForm):
     model = Currency
@@ -530,3 +536,16 @@ class CurrencyFilterForm(NetBoxModelFilterSetForm):
 
 class CurrencyBulkEditForm(NetBoxModelBulkEditForm):
     model = Currency
+
+class CurrencyCSVForm(NetBoxModelImportForm):
+    country = CSVModelChoiceField(
+        queryset=Region.objects.all(),
+        to_field_name='name',
+        help_text='NetBox name of the Country ',
+        required=True,
+        label=_('Country'),
+    )
+
+    class Meta:
+        model = Currency
+        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate']

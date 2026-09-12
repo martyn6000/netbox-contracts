@@ -14,7 +14,7 @@ class ContractViewSet(NetBoxModelViewSet):
         'contract_type',
         'provider',
         'provider_account',
-        'currency_id',
+        'currency',
         'parent',
         'tags',
         'custom_fields',
@@ -26,7 +26,7 @@ class ContractAssignmentViewSet(NetBoxModelViewSet):
     queryset = models.ContractAssignment.objects.prefetch_related(
         'contract',
         'object_type',
-        'currency_id',
+        'currency',
         'sla',
         'provider',
         'provider_account',

@@ -96,7 +96,7 @@ class ContractAssignmentListTable(NetBoxTable):
     contract = tables.Column(linkify=True)
     object_type = columns.ContentTypeColumn(verbose_name='Object Type')
     object = tables.Column(linkify=True, orderable=False)
-    currency_id = tables.Column(linkify=True)
+    currency = tables.Column(linkify=True)
     yrc = tables.Column(verbose_name='Yearly recurring cost')
     nrc = tables.Column(verbose_name='Non-recurring cost')
     sla = tables.Column(linkify=True)
@@ -120,7 +120,7 @@ class ContractAssignmentListTable(NetBoxTable):
             'object_type',
             'object',
             'end_date',
-            'currency_id',
+            'currency',
             'yrc',
             'nrc',
             'sla',
@@ -147,7 +147,7 @@ class ContractAssignmentListTable(NetBoxTable):
             'object',
             'device_serial',
             'end_date',
-            'currency_id',
+            'currency',
             'yrc',
             'nrc',
             'sla',
@@ -206,9 +206,9 @@ class ContractListTable(NetBoxTable):
     name = tables.Column(linkify=True)
     provider = tables.Column(linkify=True)
     parent = tables.Column(linkify=True)
-    currency_id = tables.Column(linkify=True)
-    yrc = tables.Column(verbose_name='Yearly recurring costs')
-    nrc = tables.Column(verbose_name='Non-recurring costs')
+    currency = tables.Column(linkify=True)
+    yrc = tables.Column(verbose_name='YRC in Local Currency')
+    nrc = tables.Column(verbose_name='NRC in Local Currency')
     contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
     provider_account = tables.Column(linkify=True)
     documents = tables.Column(linkify=False)
@@ -219,6 +219,8 @@ class ContractListTable(NetBoxTable):
     )
     contract_status = ChoiceFieldColumn()
     actions = columns.ActionsColumn(actions=('edit', 'delete'))
+    yrc_usd = tables.Column(verbose_name='YRC in USD')
+    nrc_usd = tables.Column(verbose_name='NRC in USD')
 
     class Meta(NetBoxTable.Meta):
         model = Contract
@@ -232,7 +234,7 @@ class ContractListTable(NetBoxTable):
             'start_date',
             'end_date',
             'notice_period',
-            'currency_id',
+            'currency',
             'yrc',
             'nrc',
             'documents',
@@ -244,6 +246,9 @@ class ContractListTable(NetBoxTable):
             'assgined_count',
             'contract_status',
             'actions',
+            'yrc_usd',
+            'nrc_usd',
+            'contract_length',
         )
         default_columns = (
             'pk',
@@ -253,12 +258,22 @@ class ContractListTable(NetBoxTable):
             'provider',
             'start_date',
             'end_date',
-            'currency_id',
+            'currency',
             'yrc',
             'nrc',
             'assgined_count',
         )
         order_by = ('name',)
+
+    def render_yrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
+
+    def render_nrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
 
 class ServiceLevelAgreementListTable(NetBoxTable):
     name = tables.Column(linkify=True)
@@ -283,7 +298,8 @@ class ServiceLevelAgreementListTable(NetBoxTable):
 class CurrencyListTable(NetBoxTable):
     currency_code = tables.Column(linkify=True)
     actions = columns.ActionsColumn(actions=('edit', 'delete'))
-
+    country = tables.Column(linkify=True)
+    
     class Meta(NetBoxTable.Meta):
         model = Currency
         fields = (

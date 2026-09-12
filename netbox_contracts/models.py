@@ -10,7 +10,7 @@ from netbox.models.features import ContactsMixin
 from utilities.choices import ChoiceSet
 from utilities.fields import ColorField
 from circuits.models import Provider, ProviderAccount
-from dcim.models import Region
+
 
 class StatusChoices(ChoiceSet):
     ACTIVE = 'Active'
@@ -78,8 +78,9 @@ class Currency(NetBoxModel):
         verbose_name=_('currency code')
     )
     country = models.ForeignKey(
-        to=Region,
-        on_delete=models.SET_NULL,
+        to='dcim.Region',
+        on_delete=models.PROTECT,
+        related_name='country',
         blank=True,
         null=True
     )
@@ -101,6 +102,10 @@ class Currency(NetBoxModel):
 
     class Meta:
         ordering = ('currency_code',)
+        verbose_name_plural = 'Currencies'
+
+    def __str__(self):
+        return self.currency_name
 
 class ContractAssignment(NetBoxModel):
     contract = models.ForeignKey(
@@ -132,12 +137,12 @@ class ContractAssignment(NetBoxModel):
         verbose_name=_('end date'),        
         help_text=_('A unique end date varying from the contract'),
         )
-    currency_id = models.ForeignKey(
+    currency = models.ForeignKey(
         to=Currency,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='contract_assignments',
+        related_name='currency',
         verbose_name=_('currency'),
         help_text=_('Currency for this contract assignment')
     )
@@ -207,7 +212,7 @@ class ContractAssignment(NetBoxModel):
         'sla',
         'fe',
         'fe_account',
-        'currency_id'
+        'currency'
     )
 
     class Meta:
@@ -285,7 +290,7 @@ class Contract(ContactsMixin,NetBoxModel):
         blank=True,
         null=True
     )
-    currency_id = models.ForeignKey(
+    currency = models.ForeignKey(
         to=Currency,
         on_delete=models.SET_NULL,
         blank=True,
@@ -324,14 +329,15 @@ class Contract(ContactsMixin,NetBoxModel):
     comments = models.TextField(
         blank=True,
     )
-    clone_fields = ('contract_type', 'provider', 'provider_account', 'start_date', 'end_date', 'notice_period','currency_id', 'yrc', 'nrc', 'parent', 'documents' )
+    clone_fields = ('contract_type', 'provider', 'provider_account', 'start_date', 'end_date', 'notice_period','currency', 'yrc', 'nrc', 'parent', 'documents' )
 
     def notice_date(self):
         return self.end_date - timedelta(days=self.notice_period)
 
     def contract_length(self):
         if self.start_date:
-            return self.end_date - self.start_date
+            delta = self.end_date - self.start_date
+            return f"{delta.days} days"
         return None
 
     @property
@@ -359,22 +365,22 @@ class Contract(ContactsMixin,NetBoxModel):
         else:
             return "gray"
 
-    @property
-    def usd_yrc_costs(self):
-        usd_yrc = self.currency_id.usd_rate * self.yrc
-        return usd_yrc
+    # @property
+    # def usd_yrc_costs(self):
+    #     usd_yrc = self.currency.usd_rate * self.yrc
+    #     return usd_yrc
 
-    @property
-    def usd_nrc_costs(self):
-        usd_nrc = self.currency_id.usd_rate * self.nrc
-        return usd_nrc
+    # @property
+    # def usd_nrc_costs(self):
+    #     usd_nrc = self.currency.usd_rate * self.nrc
+    #     return usd_nrc
 
     @property
     def nrc_usd(self):
-        if self.nrc is None or self.currency_id is None or self.currency_id.usd_rate is None:
+        if self.nrc is None or self.currency is None or self.currency.usd_rate is None:
             return None
 
-        return self.nrc * self.currency_id.usd_rate
+        return self.nrc * self.currency.usd_rate
     
     class Meta:
         ordering = ['name',]
@@ -411,10 +417,16 @@ class Contract(ContactsMixin,NetBoxModel):
 
     @property
     def yrc_usd(self):
-        if not self.yrc or not self.currency_id or not self.currency_id.usd_rate:
+        if not self.yrc or not self.currency or not self.currency.usd_rate:
             return None
 
-        return self.yrc * self.currency_id.usd_rate
+        return self.yrc * self.currency.usd_rate
 
     def get_contract_status_color(self):
         return StatusChoices.colors.get(self.contract_status)
+
+    def render_yrc_usd(self, value):
+        return f"${value:,.2f}"
+
+    def render_nrc_usd(self, value):
+        return f"${value:,.2f}"

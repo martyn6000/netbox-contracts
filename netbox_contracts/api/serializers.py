@@ -117,7 +117,7 @@ class ContractSerializer(NetBoxModelSerializer):
     contract_type = NestedContractTypeSerializer(read_only=True)
     currency = NestedCurrencySerializer(read_only=True)
     parent = NestedContractSerializer(read_only=True)
-    contract_status = serializers.CharField(read_only=True, source='contract_status')
+    contract_status = serializers.CharField(read_only=True)
     contract_length = serializers.SerializerMethodField()
     notice_date = serializers.SerializerMethodField()
     yrc_usd = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True, allow_null=True)
@@ -139,7 +139,7 @@ class ContractSerializer(NetBoxModelSerializer):
             'notice_date',
             'contract_length',
             'contract_status',
-            'currency_id',
+            'currency',
             'yrc',
             'nrc',
             'yrc_usd',
@@ -176,9 +176,12 @@ class ContractAssignmentSerializer(NetBoxModelSerializer):
         view_name='plugins-api:netbox_contracts-api:contractassignment-detail'
     )
     contract = NestedContractSerializer(read_only=True)
-    currency_id = NestedCurrencySerializer(read_only=True)
+    currency = serializers.SlugRelatedField(
+        slug_field='currency_code', 
+        queryset=Currency.objects.all()
+    )
     sla = NestedServiceLevelAgreementSerializer(read_only=True)
-    assignment_status = serializers.CharField(read_only=True, source='assignment_status')
+    assignment_status = serializers.CharField(read_only=True)
 
     class Meta:
         model = ContractAssignment
@@ -190,7 +193,7 @@ class ContractAssignmentSerializer(NetBoxModelSerializer):
             'object_type',
             'object_id',
             'end_date',
-            'currency_id',
+            'currency',
             'yrc',
             'nrc',
             'sla',
