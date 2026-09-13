@@ -1,12 +1,9 @@
 import django_filters
-
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
-
 from circuits.models import Circuit, CircuitTermination
 from dcim.models import Device, Region, Site
 from netbox.filtersets import NetBoxModelFilterSet
-
 from .models import (
     Contract,
     ContractAssignment,
@@ -14,7 +11,6 @@ from .models import (
     Currency,
     ServiceLevelAgreement,
 )
-
 
 __all__ = (
     'ContractFilterSet',
