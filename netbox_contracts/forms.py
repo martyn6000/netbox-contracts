@@ -17,6 +17,7 @@ from utilities.forms.fields import (
     CSVModelChoiceField,
     DynamicModelChoiceField,
     TagFilterField,
+    DynamicModelMultipleChoiceField,
 )
 from utilities.forms.widgets import DatePicker, HTMXSelect
 from .models import (
@@ -527,12 +528,25 @@ class CurrencyForm(NetBoxModelForm):
 
 class CurrencyFilterForm(NetBoxModelFilterSetForm):
     model = Currency
-    currency_code = DynamicModelChoiceField(
+    country = DynamicModelMultipleChoiceField(
+        queryset=Region.objects.all(),
+        required=False,
+        label='Country'
+    )
+    currency_code = DynamicModelMultipleChoiceField(
         queryset=Currency.objects.all(),
         required=False,
-        selector=True,
-        label=_('Currency')
+        label='Currency Code'
     )
+    currency_name = DynamicModelMultipleChoiceField(
+        queryset=Currency.objects.all(),
+        required=False,
+        label='Currency Name'
+    )
+    class Meta:
+        model = Currency
+        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate']
+
 
 class CurrencyBulkEditForm(NetBoxModelBulkEditForm):
     model = Currency

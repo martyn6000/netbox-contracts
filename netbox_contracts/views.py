@@ -371,8 +371,8 @@ class CurrencyView(generic.ObjectView):
 class CurrencyListView(generic.ObjectListView):
     queryset = Currency.objects.all()
     table = tables.CurrencyListTable
-    # filterset = filtersets.CurrencyFilterSet
-    # filterset_form = forms.CurrencyFilterForm
+    filterset = filtersets.CurrencyFilterSet
+    filterset_form = forms.CurrencyFilterForm
 
 @register_model_view(Currency, name='edit')
 class CurrencyEditView(generic.ObjectEditView):

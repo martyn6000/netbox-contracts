@@ -1,4 +1,5 @@
 from datetime import timedelta, date
+from dateutil.utils import today
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -147,7 +148,7 @@ class ContractAssignment(NetBoxModel):
         help_text=_('Currency for this contract assignment')
     )
     yrc = models.DecimalField(
-            verbose_name=_('yearly recurring cost'),
+            verbose_name=_('yrc'),
             max_digits=10,
             decimal_places=2,
             blank=True,
@@ -155,7 +156,7 @@ class ContractAssignment(NetBoxModel):
             help_text=_('Enter the yearly recurring Costs'),
         )
     nrc = models.DecimalField(
-        verbose_name=_('non recurring cost'), 
+        verbose_name=_('nrc'), 
         default=0, 
         max_digits=10, 
         decimal_places=2,
@@ -246,7 +247,35 @@ class ContractAssignment(NetBoxModel):
     def get_assignment_status_color(self):
         return StatusChoices.colors.get(self.assignment_status)
 
-class Contract(ContactsMixin,NetBoxModel):
+    def contract_length_remaining(self):
+        if self.end_date:
+            delta = self.end_date - date.today()
+            if delta.days < 0:
+                return "Expired"
+            return f"{delta.days} days"
+        return None
+    
+    @property
+    def nrc_usd(self):
+        if self.nrc is None or self.currency is None or self.currency.usd_rate is None:
+            return None
+
+        return self.nrc * self.currency.usd_rate
+    
+    @property
+    def yrc_usd(self):
+        if self.yrc is None or self.currency is None or self.currency.usd_rate is None:
+            return None
+
+        return self.yrc * self.currency.usd_rate
+
+    def render_yrc_usd(self, value):
+        return f"${value:,.2f}"
+
+    def render_nrc_usd(self, value):
+        return f"${value:,.2f}"
+
+class Contract(NetBoxModel):
     name = models.CharField(
         max_length=100, 
         verbose_name=_('name')
@@ -337,6 +366,14 @@ class Contract(ContactsMixin,NetBoxModel):
     def contract_length(self):
         if self.start_date:
             delta = self.end_date - self.start_date
+            return f"{delta.days} days"
+        return None
+
+    def contract_length_remaining(self):
+        if self.end_date:
+            delta = self.end_date - date.today()
+            if delta.days < 0:
+                return "Expired"
             return f"{delta.days} days"
         return None
 

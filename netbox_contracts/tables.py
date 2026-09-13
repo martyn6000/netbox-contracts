@@ -137,6 +137,9 @@ class ContractAssignmentListTable(NetBoxTable):
             'assignment_status',
             'device_serial',
             'actions',
+            'yrc_usd',
+            'nrc_usd',
+            'contract_length_remaining',
         )
         default_columns = (
             'contract',
@@ -152,6 +155,16 @@ class ContractAssignmentListTable(NetBoxTable):
             'nrc',
             'sla',
         )
+
+    def render_yrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
+
+    def render_nrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
 
 class ContractAssignmentObjectTable(NetBoxTable):
     contract = tables.Column(linkify=True)
@@ -187,6 +200,10 @@ class ContractAssignmentObjectTable(NetBoxTable):
             'actions',
             'comments',
             'assignment_status',
+            'yrc_usd',
+            'nrc_usd',
+            'contract_length',
+            'contract_length_remaining',
         )
         default_columns = (
             'contract',
@@ -201,6 +218,16 @@ class ContractAssignmentObjectTable(NetBoxTable):
             'fe_account',
         )
         order_by = ('contract__status')
+
+    def render_yrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
+
+    def render_nrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
 
 class ContractListTable(NetBoxTable):
     name = tables.Column(linkify=True)
@@ -249,6 +276,7 @@ class ContractListTable(NetBoxTable):
             'yrc_usd',
             'nrc_usd',
             'contract_length',
+            'contract_length_remaining',
         )
         default_columns = (
             'pk',

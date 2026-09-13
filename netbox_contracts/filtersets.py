@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Q
 from netbox.filtersets import NetBoxModelFilterSet
-from django_filters import ModelChoiceFilter
+from django_filters import ModelChoiceFilter, ModelMultipleChoiceFilter
 from dcim.models import Region
 
 from .models import (
@@ -66,11 +66,37 @@ class ContractAssignmentFilterSet(NetBoxModelFilterSet):
         return queryset.filter(Q(contract__name__icontains=value))
 
 class CurrencyFilterSet(NetBoxModelFilterSet):
-    country = ModelChoiceFilter(
-        field_name='country',
+    country = ModelMultipleChoiceFilter(
+        field_name='country__slug', # Traverses to the slug or name
+        to_field_name='slug',
         queryset=Region.objects.all(),
-        label='Country (ID)',
+        label='Country (Region)',
     )
+
+    currency_code = django_filters.ModelMultipleChoiceFilter(
+        field_name='currency_code',
+        to_field_name='currency_code',
+        queryset=Currency.objects.all(),
+        label='Currency Code',
+    )
+    currency_name = django_filters.ModelMultipleChoiceFilter(
+        field_name='currency_name',
+        to_field_name='currency_name',
+        queryset=Currency.objects.all(),
+        label='Currency Name',
+    )
+
     class Meta:
         model = Currency
         fields = ('id', 'currency_code','currency_name', 'country', 'currency_number', 'usd_rate')
+
+    def search(self, queryset, name, value):
+        if not value.strip():
+            return queryset
+        
+        # Define which fields the quick search box actually looks at
+        return queryset.filter(
+            Q(currency_code__icontains=value) | 
+            Q(currency_name__icontains=value) | 
+            Q(currency_number__icontains=value)
+        )
