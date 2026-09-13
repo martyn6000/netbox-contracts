@@ -406,11 +406,19 @@ class ContractAssignmentFilterForm(NetBoxModelFilterSetForm):
             'provider_id': '$fe',
         }
     )
+    region = DynamicModelMultipleChoiceField(
+        queryset=Region.objects.all(),
+        required=False,
+        label='Region',
+    )
     # object_id = forms.CharField(
     #     help_text='ID of the object to be imported',
     #     label=_('Object ID')
     # )
-
+    class Meta:
+        model = ContractAssignment
+        fields = ['contract','object_type','object_id', 'region']
+        
 class ContractAssignmentImportForm(NetBoxModelImportForm):
     object_type = CSVContentTypeField(
         queryset=ContentType.objects.all(),
