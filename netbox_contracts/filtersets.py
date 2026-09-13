@@ -66,37 +66,46 @@ class ContractAssignmentFilterSet(NetBoxModelFilterSet):
         return queryset.filter(Q(contract__name__icontains=value))
 
 class CurrencyFilterSet(NetBoxModelFilterSet):
-    country = ModelMultipleChoiceFilter(
-        field_name='country__slug', # Traverses to the slug or name
-        to_field_name='slug',
+
+    country = django_filters.ModelMultipleChoiceFilter(
+        method='filter_country',
         queryset=Region.objects.all(),
         label='Country (Region)',
     )
 
-    currency_code = django_filters.ModelMultipleChoiceFilter(
-        field_name='currency_code',
-        to_field_name='currency_code',
-        queryset=Currency.objects.all(),
-        label='Currency Code',
-    )
-    currency_name = django_filters.ModelMultipleChoiceFilter(
-        field_name='currency_name',
-        to_field_name='currency_name',
-        queryset=Currency.objects.all(),
-        label='Currency Name',
-    )
-
     class Meta:
         model = Currency
-        fields = ('id', 'currency_code','currency_name', 'country', 'currency_number', 'usd_rate')
+        fields = (
+            'id',
+            'currency_code',
+            'currency_name',
+            'country',
+            'currency_number',
+            'usd_rate',
+        )
+
+    def filter_country(self, queryset, name, regions):
+        if not regions:
+            return queryset
+
+        # Get the selected regions and all of their descendants
+        region_ids = set()
+
+        for region in regions:
+            region_ids.add(region.pk)
+
+            # NetBox Region uses a nested hierarchy
+            descendants = region.get_descendants(include_self=False)
+            region_ids.update(descendants.values_list('pk', flat=True))
+
+        return queryset.filter(country_id__in=region_ids).distinct()
 
     def search(self, queryset, name, value):
         if not value.strip():
             return queryset
-        
-        # Define which fields the quick search box actually looks at
+
         return queryset.filter(
-            Q(currency_code__icontains=value) | 
-            Q(currency_name__icontains=value) | 
+            Q(currency_code__icontains=value) |
+            Q(currency_name__icontains=value) |
             Q(currency_number__icontains=value)
         )
