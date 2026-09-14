@@ -1,6 +1,7 @@
 import django_tables2 as tables
 from netbox.tables import NetBoxTable, columns, ChoiceFieldColumn
 from circuits.models import Provider, ProviderAccount
+from dcim.models import Site
 from .models import (
     Contract,
     ContractAssignment,
@@ -183,6 +184,12 @@ class ContractAssignmentObjectTable(NetBoxTable):
     )
     contract__contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
     assignment_status = ChoiceFieldColumn()
+    region = tables.Column(
+        accessor='object',
+        orderable=False,
+        empty_values=(),
+        verbose_name='Region',
+    )
 
     class Meta(NetBoxTable.Meta):
         model = ContractAssignment
@@ -204,6 +211,7 @@ class ContractAssignmentObjectTable(NetBoxTable):
             'nrc_usd',
             'contract_length',
             'contract_length_remaining',
+            'region',
         )
         default_columns = (
             'contract',
@@ -218,6 +226,30 @@ class ContractAssignmentObjectTable(NetBoxTable):
             'fe_account',
         )
         order_by = ('contract__status')
+
+    def render_region(self, record):
+        obj = record.object
+        if obj is None:
+            return None
+
+        # Device / VirtualMachine: region lives behind a Site, reached
+        # either directly or via a cluster.
+        site = getattr(obj, 'site', None)
+        if site is None:
+            cluster = getattr(obj, 'cluster', None)
+            site = getattr(cluster, 'site', None)
+        if site is not None:
+            return site.region
+
+        # Circuit: use the A-side termination when it lands on a Site.
+        terminations = getattr(obj, 'terminations', None)
+        if terminations is not None:
+            for termination in terminations.all():
+                target = termination.termination
+                if isinstance(target, Site):
+                    return target.region
+
+        return None
 
     def render_yrc_usd(self, value):
         if value is None:
@@ -338,6 +370,7 @@ class CurrencyListTable(NetBoxTable):
             'currency_number',
             'country',
             'usd_rate',
+            'comments',
             'tags',
             'created',
             'last_updated',

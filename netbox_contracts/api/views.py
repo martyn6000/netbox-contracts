@@ -10,12 +10,13 @@ from .serializers import (
 )
 
 class ContractViewSet(NetBoxModelViewSet):
-    queryset = models.Contract.objects.prefetch_related(
+    queryset = models.Contract.objects.select_related(
         'contract_type',
         'provider',
         'provider_account',
         'currency',
         'parent',
+    ).prefetch_related(
         'tags',
         'custom_fields',
     )
@@ -23,7 +24,7 @@ class ContractViewSet(NetBoxModelViewSet):
     filterset_class = filtersets.ContractFilterSet
 
 class ContractAssignmentViewSet(NetBoxModelViewSet):
-    queryset = models.ContractAssignment.objects.prefetch_related(
+    queryset = models.ContractAssignment.objects.select_related(
         'contract',
         'object_type',
         'currency',
@@ -32,6 +33,7 @@ class ContractAssignmentViewSet(NetBoxModelViewSet):
         'provider_account',
         'fe',
         'fe_account',
+    ).prefetch_related(
         'tags',
         'custom_fields',
     )
@@ -52,8 +54,9 @@ class ServiceLevelAgreementViewSet(NetBoxModelViewSet):
     serializer_class = ServiceLevelAgreementSerializer
 
 class CurrencyViewSet(NetBoxModelViewSet):
-    queryset = models.Currency.objects.prefetch_related(
+    queryset = models.Currency.objects.select_related(
         'country',
+    ).prefetch_related(
         'tags',
         'custom_fields',
     )

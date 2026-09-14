@@ -93,11 +93,11 @@ class ContractForm(NetBoxModelForm):
 
 class ContractFilterForm(NetBoxModelFilterSetForm):
     model = Contract
-    contract_type = DynamicModelChoiceField(
+    contract_type = forms.ModelMultipleChoiceField(
         queryset=ContractType.objects.all(),
         required=False,
-        selector=True,
-        label=_('Contract type'),
+        label=_('Contract Type'),
+        help_text=_('Filter by Contract Type'),
     )
     provider = DynamicModelChoiceField(
         queryset=Provider.objects.all(),
@@ -156,6 +156,13 @@ class ContractCSVForm(NetBoxModelImportForm):
         required=False,
         label=_('Provider Account'),
     )
+    currency = CSVModelChoiceField(
+        queryset=Currency.objects.all(),
+        to_field_name='currency_code',
+        help_text='Currency code (e.g. USD)',
+        required=False,
+        label=_('Currency'),
+    )
 
     class Meta:
         model = Contract
@@ -172,14 +179,15 @@ class ContractCSVForm(NetBoxModelImportForm):
             'nrc',
             'documents',
             'parent',
+            'comments',
+            'tags',
         ]
 
 class ContractBulkEditForm(NetBoxModelBulkEditForm):
     name = forms.CharField(max_length=100, required=False, label=_('Name'))
-    contract_type = DynamicModelChoiceField(
+    contract_type = forms.ModelChoiceField(
         queryset=ContractType.objects.all(),
         required=False,
-        selector=True,
         label=_('Contract Type')
     )
     provider = DynamicModelChoiceField(
@@ -242,7 +250,7 @@ class ContractTypeCSVForm(NetBoxModelImportForm):
 
     class Meta:
         model = ContractType
-        fields = ['name', 'description', 'color', 'comments']
+        fields = ['name', 'description', 'color', 'comments', 'tags']
 
 class ContractTypeBulkEditForm(NetBoxModelBulkEditForm):
     description = CommentField(label=_('Description'), required=False)
@@ -366,11 +374,22 @@ class ContractAssignmentForm(NetBoxModelForm):
 
 class ContractAssignmentFilterForm(NetBoxModelFilterSetForm):
     model = ContractAssignment
-    contract = DynamicModelChoiceField(
+    region = DynamicModelMultipleChoiceField(
+        queryset=Region.objects.all(),
+        required=False,
+        label='Region',
+    )
+    contract_type = forms.ModelMultipleChoiceField(
+        queryset=ContractType.objects.all(),
+        required=False,
+        label=_('Contract Type'),
+        help_text=_('Filter by Contract Type'),
+    )
+    contract = forms.ModelMultipleChoiceField(
         queryset=Contract.objects.all(),
         required=False,
-        selector=True,
         label=_('Contract'),
+        help_text=_('Filter by Contract'),
     )
     provider = DynamicModelChoiceField(
         queryset=Provider.objects.all(),
@@ -406,11 +425,7 @@ class ContractAssignmentFilterForm(NetBoxModelFilterSetForm):
             'provider_id': '$fe',
         }
     )
-    region = DynamicModelMultipleChoiceField(
-        queryset=Region.objects.all(),
-        required=False,
-        label='Region',
-    )
+
     # object_id = forms.CharField(
     #     help_text='ID of the object to be imported',
     #     label=_('Object ID')
@@ -435,9 +450,66 @@ class ContractAssignmentImportForm(NetBoxModelImportForm):
         help_text='ID of the object to be imported',
         label=_('Object ID')
     )
+    currency = CSVModelChoiceField(
+        queryset=Currency.objects.all(),
+        to_field_name='currency_name',
+        help_text='Currency name',
+        required=False,
+        label=_('Currency'),
+    )
+    sla = CSVModelChoiceField(
+        queryset=ServiceLevelAgreement.objects.all(),
+        to_field_name='name',
+        help_text='Service level agreement name',
+        required=False,
+        label=_('SLA'),
+    )
+    provider = CSVModelChoiceField(
+        queryset=Provider.objects.all(),
+        to_field_name='name',
+        help_text='NetBox name of the provider',
+        required=False,
+        label=_('Provider'),
+    )
+    provider_account = CSVModelChoiceField(
+        queryset=ProviderAccount.objects.all(),
+        to_field_name='account',
+        help_text='NetBox account name of the provider account',
+        required=False,
+        label=_('Provider Account'),
+    )
+    fe = CSVModelChoiceField(
+        queryset=Provider.objects.all(),
+        to_field_name='name',
+        help_text='NetBox name of the field engineer provider',
+        required=False,
+        label=_('Field Engineer Provider'),
+    )
+    fe_account = CSVModelChoiceField(
+        queryset=ProviderAccount.objects.all(),
+        to_field_name='account',
+        help_text='NetBox account name of the field engineer account',
+        required=False,
+        label=_('Field Engineer Account'),
+    )
     class Meta:
         model = ContractAssignment
-        fields = ['contract','object_type','object_id', 'tags']
+        fields = [
+            'contract',
+            'object_type',
+            'object_id',
+            'end_date',
+            'currency',
+            'yrc',
+            'nrc',
+            'sla',
+            'provider',
+            'provider_account',
+            'fe',
+            'fe_account',
+            'comments',
+            'tags',
+        ]
 
 class ContractAssignmentBulkEditForm(NetBoxModelBulkEditForm):
     contract = DynamicModelChoiceField(
@@ -532,7 +604,7 @@ class CurrencyForm(NetBoxModelForm):
     )
     class Meta:
         model = Currency
-        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate']
+        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate', 'comments', 'tags']
 
 class CurrencyFilterForm(NetBoxModelFilterSetForm):
     model = Currency
@@ -548,6 +620,8 @@ class CurrencyFilterForm(NetBoxModelFilterSetForm):
 
 
 class CurrencyBulkEditForm(NetBoxModelBulkEditForm):
+    comments = CommentField(required=False, label=_('Comments'))
+    nullable_fields = ('comments',)
     model = Currency
 
 class CurrencyCSVForm(NetBoxModelImportForm):
@@ -561,4 +635,4 @@ class CurrencyCSVForm(NetBoxModelImportForm):
 
     class Meta:
         model = Currency
-        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate']
+        fields = ['currency_code', 'country', 'currency_name', 'currency_number', 'usd_rate', 'comments', 'tags']

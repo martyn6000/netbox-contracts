@@ -400,7 +400,7 @@ class CurrencyBulkEditView(generic.BulkEditView):
 class CurrencyBulkDeleteView(generic.BulkDeleteView):
     queryset = Currency.objects.all()
     filterset = filtersets.CurrencyFilterSet
-    table = tables.ContractListTable
+    table = tables.CurrencyListTable
 #
 # Extentions to existing components
 #
@@ -436,7 +436,7 @@ class DeviceContractsView(generic.ObjectChildrenView):
             object_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk
         ).count(),
-        permission='netbox_contract.view_contractassignment'
+        permission='netbox_contracts.view_contractassignment'
     )
 
     def get_children(self, request, parent):
@@ -461,7 +461,7 @@ class CircuitContractsView(generic.ObjectChildrenView):
             object_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk
         ).count(),
-        permission='netbox_contract.view_contractassignment'
+        permission='netbox_contracts.view_contractassignment'
     )
 
     def get_children(self, request, parent):
@@ -486,7 +486,7 @@ class VCircuitContractsView(generic.ObjectChildrenView):
             object_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk
         ).count(),
-        permission='netbox_contract.view_contractassignment'
+        permission='netbox_contracts.view_contractassignment'
     )
 
     def get_children(self, request, parent):
@@ -511,7 +511,7 @@ class VMachineView(generic.ObjectChildrenView):
             object_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk
         ).count(),
-        permission='netbox_contract.view_contractassignment'
+        permission='netbox_contracts.view_contractassignment'
     )
 
     def get_children(self, request, parent):

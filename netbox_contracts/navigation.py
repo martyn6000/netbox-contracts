@@ -39,13 +39,13 @@ provider_buttons = [
         link='plugins:netbox_contracts:provider_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
-        permissions=['netbox_contracts.add_provider'],
+        permissions=['circuits.add_provider'],
     ),
     PluginMenuButton(
         link='plugins:netbox_contracts:provider_bulk_import',
         title=_('Import'),
         icon_class="mdi mdi-upload",
-        permissions=['netbox_contracts.add_provider'],
+        permissions=['circuits.add_provider'],
     )
 ]
 
@@ -69,13 +69,13 @@ provideraccount_buttons = [
         link='plugins:netbox_contracts:provideraccount_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
-        permissions=['netbox_contracts.add_provideraccount'],
+        permissions=['circuits.add_provideraccount'],
     ),
     PluginMenuButton(
         link='plugins:netbox_contracts:provideraccount_bulk_import',
         title=_('Import'),
         icon_class="mdi mdi-upload",
-        permissions=['netbox_contracts.add_provideraccount'],
+        permissions=['circuits.add_provideraccount'],
     )
 ]
 
@@ -118,7 +118,7 @@ contract_menu_item = PluginMenuItem(
 
 contracttype_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:contracttype_list',
-    link_text=_('Contract type'),
+    link_text=_('Contract Types'),
     buttons=contracttype_buttons,
     permissions=['netbox_contracts.view_contract'],
 )
@@ -127,44 +127,44 @@ provider_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:provider_list',
     link_text=_('Providers'),
     buttons=provider_buttons,
-    permissions=['netbox_contracts.view_provider'],
+    permissions=['circuits.view_provider'],
 )
 
 provideraccount_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:provideraccount_list',
     link_text=_('Provider Accounts'),
     buttons=provideraccount_buttons,
-    permissions=['netbox_contracts.view_provideraccount'],
+    permissions=['circuits.view_provideraccount'],
 )
 
 contract_assignemnt_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:contractassignment_list',
-    link_text=_('Contracts assignments'),
+    link_text=_('Contract Assignments'),
     buttons=contractassingmenttype_buttons,
     permissions=['netbox_contracts.view_contractassignment'],
 )
 
 servicelevelagreement_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:servicelevelagreement_list',
-    link_text=_('Service Level Agreement'),
+    link_text=_('Service Level Agreements'),
     buttons=servicelevelagreement_buttons,
     permissions=['netbox_contracts.view_servicelevelagreement'],
 )
 
 currency_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:currency_list',
-    link_text=_('Currency'),
+    link_text=_('Currencies'),
     buttons=currency_buttons,
     permissions=['netbox_contracts.view_contract'],
 )
 
 items = (
     contract_menu_item,
+    contract_assignemnt_menu_item,
     contracttype_menu_item,
     provider_menu_item,
     provideraccount_menu_item,
     servicelevelagreement_menu_item,
-    contract_assignemnt_menu_item,
     currency_menu_item,
 )
 

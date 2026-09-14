@@ -24,9 +24,9 @@ __all__ = (
 class ContractFilterSet(NetBoxModelFilterSet):
 
     contract_type = django_filters.ModelMultipleChoiceFilter(
-        field_name='contract_type__name',
-        to_field_name='name',
         queryset=ContractType.objects.all(),
+        method='filter_contract_type',
+        label='Contract type',
     )
 
     class Meta:
@@ -38,6 +38,12 @@ class ContractFilterSet(NetBoxModelFilterSet):
             'contract_type',
             'parent',
         )
+
+    def filter_contract_type(self, queryset, name, value):
+        if not value:
+            return queryset
+
+        return queryset.filter(contract_type__in=value)
 
     def search(self, queryset, name, value):
         if not value.strip():
@@ -86,6 +92,16 @@ class ContractAssignmentFilterSet(NetBoxModelFilterSet):
         queryset=Region.objects.all(),
         label='Region',
     )
+    contract = django_filters.ModelMultipleChoiceFilter(
+        queryset=Contract.objects.all(),
+        method='filter_contract',
+        label='Contract',
+    )
+    contract_type = django_filters.ModelMultipleChoiceFilter(
+        queryset=ContractType.objects.all(),
+        method='filter_contract_type',
+        label='Contract type',
+    )
 
     class Meta:
         model = ContractAssignment
@@ -97,7 +113,20 @@ class ContractAssignmentFilterSet(NetBoxModelFilterSet):
             'object_type',
             'object_id',
             'region',
+            'contract_type',
         )
+
+    def filter_contract(self, queryset, name, value):
+        if not value:
+            return queryset
+
+        return queryset.filter(contract__in=value)
+
+    def filter_contract_type(self, queryset, name, value):
+        if not value:
+            return queryset
+
+        return queryset.filter(contract__contract_type__in=value)
 
     def filter_region(self, queryset, name, regions):
         if not regions:

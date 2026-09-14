@@ -100,6 +100,9 @@ class Currency(NetBoxModel):
         blank=True,
         help_text=_('The exchange rate to convert the currency into USD.')
     )
+    comments = models.TextField(
+        blank=True
+    )
 
     class Meta:
         ordering = ('currency_code',)
