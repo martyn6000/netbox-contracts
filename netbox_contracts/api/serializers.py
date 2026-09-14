@@ -82,6 +82,7 @@ class CurrencySerializer(NetBoxModelSerializer):
             'currency_number',
             'country',
             'usd_rate',
+            'comments',
             'tags',
             'custom_fields',
             'created',
