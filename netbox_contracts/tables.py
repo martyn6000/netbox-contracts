@@ -112,7 +112,10 @@ class ContractAssignmentListTable(NetBoxTable):
         accessor='object.serial',
         verbose_name='Device Serial',
     )
-
+    region = tables.Column(
+        accessor='...',
+        verbose_name='Region'
+    )
     class Meta(NetBoxTable.Meta):
         model = ContractAssignment
         fields = (
