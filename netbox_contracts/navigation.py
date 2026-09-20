@@ -109,6 +109,33 @@ currency_buttons = [
     )
 ]
 
+softwarelicense_buttons = [
+    PluginMenuButton(
+        link='plugins:netbox_contracts:softwarelicense_add',
+        title=_('Add'),
+        icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_softwarelicense'],
+    )
+]
+
+licensetype_buttons = [
+    PluginMenuButton(
+        link='plugins:netbox_contracts:licensetype_add',
+        title=_('Add'),
+        icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_licensetype'],
+    )
+]
+
+licenseassignment_buttons = [
+    PluginMenuButton(
+        link='plugins:netbox_contracts:licenseassignment_add',
+        title=_('Add'),
+        icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_licenseassignment'],
+    )
+]
+
 contract_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:contract_list',
     link_text=_('Contracts'),
@@ -158,6 +185,33 @@ currency_menu_item = PluginMenuItem(
     permissions=['netbox_contracts.view_contract'],
 )
 
+softwarelicense_menu_item = PluginMenuItem(
+    link='plugins:netbox_contracts:softwarelicense_list',
+    link_text=_('Software Licenses'),
+    buttons=softwarelicense_buttons,
+    permissions=['netbox_contracts.view_softwarelicense'],
+)
+
+licenseassignment_menu_item = PluginMenuItem(
+    link='plugins:netbox_contracts:licenseassignment_list',
+    link_text=_('License Assignments'),
+    buttons=licenseassignment_buttons,
+    permissions=['netbox_contracts.view_licenseassignment'],
+)
+
+licensetype_menu_item = PluginMenuItem(
+    link='plugins:netbox_contracts:licensetype_list',
+    link_text=_('License Types'),
+    buttons=licensetype_buttons,
+    permissions=['netbox_contracts.view_licensetype'],
+)
+
+software_items = (
+    softwarelicense_menu_item,
+    licenseassignment_menu_item,
+    licensetype_menu_item,
+)
+
 items = (
     contract_menu_item,
     contract_assignemnt_menu_item,
@@ -170,9 +224,12 @@ items = (
 
 if plugin_settings.get('top_level_menu'):
     menu = PluginMenu(
-        label=_('Contracts'),
-        groups=(('Contracts', items),),
+        label=_('SCB Operations'),
+        groups=(
+            ('Contracts', items),
+            ('Software', software_items),
+        ),
         icon_class='mdi mdi-file-sign',
     )
 else:
-    menu_items = items
+    menu_items = items + software_items

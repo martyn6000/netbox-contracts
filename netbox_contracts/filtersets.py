@@ -3,13 +3,18 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from circuits.models import Circuit, CircuitTermination
 from dcim.models import Device, Region, Site
+from dcim.models import Manufacturer
 from netbox.filtersets import NetBoxModelFilterSet
+from utilities.filters import ContentTypeFilter
 from .models import (
     Contract,
     ContractAssignment,
     ContractType,
     Currency,
+    LicenseAssignment,
+    LicenseType,
     ServiceLevelAgreement,
+    SoftwareLicense,
 )
 
 __all__ = (
@@ -18,6 +23,9 @@ __all__ = (
     'ServiceLevelAgreementFilterSet',
     'ContractAssignmentFilterSet',
     'CurrencyFilterSet',
+    'LicenseTypeFilterSet',
+    'SoftwareLicenseFilterSet',
+    'LicenseAssignmentFilterSet',
 )
 
 
@@ -261,4 +269,71 @@ class CurrencyFilterSet(NetBoxModelFilterSet):
             Q(currency_code__icontains=value)
             | Q(currency_name__icontains=value)
             | Q(currency_number__icontains=value)
+        )
+
+
+#
+# Software licensing
+#
+class LicenseTypeFilterSet(NetBoxModelFilterSet):
+    class Meta:
+        model = LicenseType
+        fields = ('id', 'name', 'description', 'color')
+
+    def search(self, queryset, name, value):
+        if not value.strip():
+            return queryset
+        return queryset.filter(Q(name__icontains=value) | Q(description__icontains=value))
+
+
+class SoftwareLicenseFilterSet(NetBoxModelFilterSet):
+    manufacturer_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Manufacturer.objects.all(),
+        label='Manufacturer (ID)',
+    )
+    license_type_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=LicenseType.objects.all(),
+        label='License Type (ID)',
+    )
+    local_currency_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Currency.objects.all(),
+        label='Local Currency (ID)',
+    )
+
+    class Meta:
+        model = SoftwareLicense
+        fields = (
+            'id',
+            'license_name',
+            'friendly_name',
+            'license_sku',
+            'manufacturer_id',
+            'license_type_id',
+            'local_currency_id',
+        )
+
+    def search(self, queryset, name, value):
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(license_name__icontains=value) | Q(friendly_name__icontains=value) | Q(license_sku__icontains=value)
+        )
+
+
+class LicenseAssignmentFilterSet(NetBoxModelFilterSet):
+    software_license_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=SoftwareLicense.objects.all(),
+        label='Software License (ID)',
+    )
+    object_type = ContentTypeFilter()
+
+    class Meta:
+        model = LicenseAssignment
+        fields = ('id', 'software_license_id', 'object_type_id', 'object_id')
+
+    def search(self, queryset, name, value):
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(software_license__license_name__icontains=value) | Q(software_license__license_sku__icontains=value)
         )

@@ -4,12 +4,13 @@ class ContractsConfig(PluginConfig):
     name = 'netbox_contracts'
     verbose_name = 'SCB Netbox contract'
     description = 'SCB Contract management plugin for Netbox'
-    version = '1.9'
+    version = '1.8'
     author = 'Martyn Stanton'
     author_email = 'marrtynstanton@hotmail.com'
     base_url = 'scb'
     min_version = '4.3.0'
     required_settings = []
+    graphql_schema = 'graphql.schema'
     default_settings = {
         'top_level_menu': True,
         'mandatory_contract_fields': [],

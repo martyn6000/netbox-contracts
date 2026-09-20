@@ -1,4 +1,5 @@
 import django_tables2 as tables
+from django.urls import reverse
 from netbox.tables import NetBoxTable, columns, ChoiceFieldColumn
 from circuits.models import Provider, ProviderAccount
 from dcim.models import Site
@@ -7,7 +8,10 @@ from .models import (
     ContractAssignment,
     ContractType,
     ServiceLevelAgreement,
-    Currency
+    Currency,
+    LicenseAssignment,
+    LicenseType,
+    SoftwareLicense,
 )
 from django_tables2.utils import Accessor
 
@@ -377,3 +381,81 @@ class CurrencyListTable(NetBoxTable):
             'actions',
         )
         default_columns = ('currency_code', 'currency_name', 'currency_number', 'country', 'usd_rate')
+
+
+#
+# Software licensing
+#
+class LicenseTypeTable(NetBoxTable):
+    name = tables.Column(linkify=True)
+    color = columns.ColorColumn()
+
+    class Meta(NetBoxTable.Meta):
+        model = LicenseType
+        fields = ('pk', 'id', 'name', 'description', 'color', 'tags', 'created', 'last_updated', 'actions')
+        default_columns = ('name', 'description', 'color')
+
+
+class SoftwareLicenseTable(NetBoxTable):
+    license_name = tables.Column(linkify=True)
+    manufacturer = tables.Column(linkify=True)
+    license_type = tables.Column(linkify=True)
+    local_currency = tables.Column(
+        accessor='local_currency.currency_code',
+        verbose_name='Local Currency',
+        linkify=lambda record: (
+            reverse('plugins:netbox_contracts:currency', args=[record.local_currency_id])
+            if record.local_currency_id
+            else None
+        ),
+    )
+    assignment_count = columns.LinkedCountColumn(
+        viewname='plugins:netbox_contracts:licenseassignment_list',
+        url_params={'software_license_id': 'pk'},
+        verbose_name='Assigned Licenses',
+        orderable=False,
+    )
+
+    class Meta(NetBoxTable.Meta):
+        model = SoftwareLicense
+        fields = (
+            'pk',
+            'id',
+            'manufacturer',
+            'license_name',
+            'friendly_name',
+            'license_sku',
+            'per_license_cost',
+            'local_currency',
+            'license_type',
+            'assignment_count',
+            'tags',
+            'created',
+            'last_updated',
+            'actions',
+        )
+        default_columns = (
+            'manufacturer',
+            'license_name',
+            'friendly_name',
+            'license_sku',
+            'per_license_cost',
+            'local_currency',
+            'license_type',
+            'assignment_count',
+        )
+
+
+class LicenseAssignmentTable(NetBoxTable):
+    software_license = tables.Column(linkify=True)
+    object_type = columns.ContentTypeColumn(verbose_name='Object Type')
+    assigned_object = tables.Column(
+        verbose_name='Object',
+        linkify=True,
+        orderable=False,
+    )
+
+    class Meta(NetBoxTable.Meta):
+        model = LicenseAssignment
+        fields = ('pk', 'id', 'software_license', 'object_type', 'assigned_object', 'tags', 'actions')
+        default_columns = ('software_license', 'object_type', 'assigned_object')

@@ -1,11 +1,20 @@
+from dcim.api.serializers import ManufacturerSerializer
+from django.contrib.contenttypes.models import ContentType
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
+from netbox.api.fields import ContentTypeField
 from netbox.api.serializers import NetBoxModelSerializer, WritableNestedSerializer
 from rest_framework import serializers
+from utilities.api import get_serializer_for_model
 from ..models import (
     Contract,
     ContractAssignment,
     ContractType,
     ServiceLevelAgreement,
     Currency,
+    LicenseAssignment,
+    LicenseType,
+    SoftwareLicense,
 )
 
 class NestedContractTypeSerializer(WritableNestedSerializer):
@@ -216,3 +225,93 @@ class ContractAssignmentSerializer(NetBoxModelSerializer):
             'contract',
             'assignment_status',
         )
+
+
+#
+# Software licensing
+#
+class LicenseTypeSerializer(NetBoxModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='plugins-api:netbox_contracts-api:licensetype-detail'
+    )
+
+    class Meta:
+        model = LicenseType
+        fields = (
+            'id',
+            'url',
+            'display',
+            'name',
+            'description',
+            'color',
+            'tags',
+            'custom_fields',
+            'created',
+            'last_updated',
+        )
+        brief_fields = ('id', 'url', 'display', 'name', 'description', 'color')
+
+
+class SoftwareLicenseSerializer(NetBoxModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='plugins-api:netbox_contracts-api:softwarelicense-detail'
+    )
+    manufacturer = ManufacturerSerializer(nested=True, required=True, allow_null=False)
+    local_currency = CurrencySerializer(nested=True, required=False, allow_null=True)
+    license_type = LicenseTypeSerializer(nested=True, required=False, allow_null=True)
+    assignment_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = SoftwareLicense
+        fields = (
+            'id',
+            'url',
+            'display',
+            'manufacturer',
+            'license_name',
+            'friendly_name',
+            'license_sku',
+            'per_license_cost',
+            'local_currency',
+            'license_type',
+            'assignment_count',
+            'tags',
+            'custom_fields',
+            'created',
+            'last_updated',
+        )
+        brief_fields = ('id', 'url', 'display', 'license_name', 'friendly_name', 'license_sku')
+
+
+class LicenseAssignmentSerializer(NetBoxModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='plugins-api:netbox_contracts-api:licenseassignment-detail'
+    )
+    software_license = SoftwareLicenseSerializer(nested=True)
+    object_type = ContentTypeField(queryset=ContentType.objects.all())
+    assigned_object = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = LicenseAssignment
+        fields = (
+            'id',
+            'url',
+            'display',
+            'software_license',
+            'object_type',
+            'object_id',
+            'assigned_object',
+            'tags',
+            'custom_fields',
+            'created',
+            'last_updated',
+        )
+        brief_fields = ('id', 'url', 'display')
+
+    @extend_schema_field(OpenApiTypes.OBJECT)
+    def get_assigned_object(self, instance):
+        if instance.assigned_object is None:
+            return None
+        serializer = get_serializer_for_model(instance.assigned_object)
+        context = {'request': self.context['request']}
+        return serializer(instance.assigned_object, nested=True, context=context).data

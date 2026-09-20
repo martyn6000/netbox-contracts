@@ -11,6 +11,7 @@ from netbox.models.features import ContactsMixin
 from utilities.choices import ChoiceSet
 from utilities.fields import ColorField
 from circuits.models import Provider, ProviderAccount
+from dcim.models import Manufacturer
 
 
 class StatusChoices(ChoiceSet):
@@ -470,3 +471,137 @@ class Contract(NetBoxModel):
 
     def render_nrc_usd(self, value):
         return f"${value:,.2f}"
+
+
+#
+# Software licensing
+#
+class LicenseType(NetBoxModel):
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name=_('name'),
+    )
+    description = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name=_('description'),
+    )
+    color = ColorField(
+        default=ColorChoices.COLOR_GREY,
+        verbose_name=_('color'),
+    )
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = _('license type')
+        verbose_name_plural = _('license types')
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_contracts:licensetype', args=[self.pk])
+
+
+class SoftwareLicense(NetBoxModel):
+    manufacturer = models.ForeignKey(
+        to=Manufacturer,
+        on_delete=models.PROTECT,
+        related_name='software_licenses',
+        verbose_name=_('manufacturer'),
+    )
+    license_name = models.CharField(
+        max_length=150,
+        verbose_name=_('license name'),
+    )
+    friendly_name = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name=_('friendly name'),
+    )
+    license_sku = models.CharField(
+        max_length=100,
+        verbose_name=_('license SKU'),
+    )
+    per_license_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name=_('per license cost'),
+        help_text=_('Unit cost per license'),
+    )
+    local_currency = models.ForeignKey(
+        to=Currency,
+        on_delete=models.SET_NULL,
+        related_name='software_licenses',
+        blank=True,
+        null=True,
+        verbose_name=_('local currency'),
+    )
+    license_type = models.ForeignKey(
+        to=LicenseType,
+        on_delete=models.PROTECT,
+        related_name='software_licenses',
+        blank=True,
+        null=True,
+        verbose_name=_('license type'),
+    )
+
+    class Meta:
+        ordering = ('license_name',)
+        verbose_name = _('software license')
+        verbose_name_plural = _('software licenses')
+
+    def __str__(self):
+        return self.license_name
+
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_contracts:softwarelicense', args=[self.pk])
+
+    @property
+    def assignment_count(self):
+        return self.assignments.count()
+
+
+class LicenseAssignment(NetBoxModel):
+    software_license = models.ForeignKey(
+        to=SoftwareLicense,
+        on_delete=models.PROTECT,
+        related_name='assignments',
+        verbose_name=_('software license'),
+    )
+    object_type = models.ForeignKey(
+        to=ContentType,
+        on_delete=models.PROTECT,
+        related_name='+',
+        verbose_name=_('object type'),
+    )
+    object_id = models.PositiveBigIntegerField(
+        verbose_name=_('object ID'),
+    )
+    assigned_object = GenericForeignKey(
+        ct_field='object_type',
+        fk_field='object_id',
+    )
+
+    class Meta:
+        ordering = ('software_license',)
+        verbose_name = _('license assignment')
+        verbose_name_plural = _('license assignments')
+        indexes = (models.Index(fields=('object_type', 'object_id'), name='nbc_licassign_object_idx'),)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('software_license', 'object_type', 'object_id'),
+                name='%(app_label)s_%(class)s_unique_license_object',
+            ),
+        )
+
+    def __str__(self):
+        if self.assigned_object:
+            return f'{self.software_license} -> {self.assigned_object}'
+        return str(self.software_license)
+
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_contracts:licenseassignment', args=[self.pk])
