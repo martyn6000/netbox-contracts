@@ -17,6 +17,9 @@ from .models import (
     ContractType,
     ServiceLevelAgreement,
     Currency,
+    LicenseAssignment,
+    LicenseType,
+    SoftwareLicense,
 )
 from ipam.models import ASN
 from django.db.models.functions import Round
@@ -371,8 +374,8 @@ class CurrencyView(generic.ObjectView):
 class CurrencyListView(generic.ObjectListView):
     queryset = Currency.objects.all()
     table = tables.CurrencyListTable
-    # filterset = filtersets.CurrencyFilterSet
-    # filterset_form = forms.CurrencyFilterForm
+    filterset = filtersets.CurrencyFilterSet
+    filterset_form = forms.CurrencyFilterForm
 
 @register_model_view(Currency, name='edit')
 class CurrencyEditView(generic.ObjectEditView):
@@ -386,7 +389,7 @@ class CurrencyDeleteView(generic.ObjectDeleteView):
 @register_model_view(Currency, name='bulk_import')
 class CurrencyBulkImportView(generic.BulkImportView):
     queryset = Currency.objects.all()
-    model_form = forms.CurrencyForm
+    model_form = forms.CurrencyCSVForm
     table = tables.CurrencyListTable
 
 @register_model_view(Currency, name='bulk_edit')
@@ -400,7 +403,7 @@ class CurrencyBulkEditView(generic.BulkEditView):
 class CurrencyBulkDeleteView(generic.BulkDeleteView):
     queryset = Currency.objects.all()
     filterset = filtersets.CurrencyFilterSet
-    table = tables.ContractListTable
+    table = tables.CurrencyListTable
 #
 # Extentions to existing components
 #
@@ -436,7 +439,7 @@ class DeviceContractsView(generic.ObjectChildrenView):
             object_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk
         ).count(),
-        permission='netbox_contract.view_contractassignment'
+        permission='netbox_contracts.view_contractassignment'
     )
 
     def get_children(self, request, parent):
@@ -461,7 +464,7 @@ class CircuitContractsView(generic.ObjectChildrenView):
             object_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk
         ).count(),
-        permission='netbox_contract.view_contractassignment'
+        permission='netbox_contracts.view_contractassignment'
     )
 
     def get_children(self, request, parent):
@@ -486,7 +489,7 @@ class VCircuitContractsView(generic.ObjectChildrenView):
             object_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk
         ).count(),
-        permission='netbox_contract.view_contractassignment'
+        permission='netbox_contracts.view_contractassignment'
     )
 
     def get_children(self, request, parent):
@@ -511,7 +514,7 @@ class VMachineView(generic.ObjectChildrenView):
             object_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk
         ).count(),
-        permission='netbox_contract.view_contractassignment'
+        permission='netbox_contracts.view_contractassignment'
     )
 
     def get_children(self, request, parent):
@@ -631,3 +634,100 @@ class VMachineView(generic.ObjectChildrenView):
 #                 'assignments': expired,
 #             },
 #         )
+
+
+#
+# Software licensing
+#
+@register_model_view(LicenseType)
+class LicenseTypeView(generic.ObjectView):
+    queryset = LicenseType.objects.all()
+
+
+@register_model_view(LicenseType, name='list')
+class LicenseTypeListView(generic.ObjectListView):
+    queryset = LicenseType.objects.all()
+    table = tables.LicenseTypeTable
+    filterset = filtersets.LicenseTypeFilterSet
+
+
+@register_model_view(LicenseType, name='edit')
+class LicenseTypeEditView(generic.ObjectEditView):
+    queryset = LicenseType.objects.all()
+    form = forms.LicenseTypeForm
+
+
+@register_model_view(LicenseType, name='delete')
+class LicenseTypeDeleteView(generic.ObjectDeleteView):
+    queryset = LicenseType.objects.all()
+
+
+@register_model_view(SoftwareLicense)
+class SoftwareLicenseView(generic.ObjectView):
+    queryset = SoftwareLicense.objects.all()
+
+
+@register_model_view(SoftwareLicense, name='list')
+class SoftwareLicenseListView(generic.ObjectListView):
+    queryset = SoftwareLicense.objects.all()
+    table = tables.SoftwareLicenseTable
+    filterset = filtersets.SoftwareLicenseFilterSet
+
+
+@register_model_view(SoftwareLicense, name='edit')
+class SoftwareLicenseEditView(generic.ObjectEditView):
+    queryset = SoftwareLicense.objects.all()
+    form = forms.SoftwareLicenseForm
+
+
+@register_model_view(SoftwareLicense, name='delete')
+class SoftwareLicenseDeleteView(generic.ObjectDeleteView):
+    queryset = SoftwareLicense.objects.all()
+
+
+@register_model_view(SoftwareLicense, name='contracts', path='contracts')
+class SoftwareLicenseContractsView(generic.ObjectChildrenView):
+    queryset = SoftwareLicense.objects.all()
+    child_model = ContractAssignment
+    table = tables.ContractAssignmentObjectTable
+    filterset = filtersets.ContractAssignmentFilterSet
+    template_name = 'generic/object_children.html'
+
+    # Always shown, even when the license has no contract assignments
+    tab = ViewTab(
+        label='Contracts',
+        badge=lambda obj: ContractAssignment.objects.filter(
+            object_type=ContentType.objects.get_for_model(obj),
+            object_id=obj.pk,
+        ).count(),
+        permission='netbox_contracts.view_contractassignment',
+    )
+
+    def get_children(self, request, parent):
+        return ContractAssignment.objects.filter(
+            object_type=ContentType.objects.get_for_model(parent),
+            object_id=parent.pk,
+        )
+
+
+@register_model_view(LicenseAssignment)
+class LicenseAssignmentView(generic.ObjectView):
+    queryset = LicenseAssignment.objects.all()
+
+
+@register_model_view(LicenseAssignment, name='list')
+class LicenseAssignmentListView(generic.ObjectListView):
+    queryset = LicenseAssignment.objects.all()
+    table = tables.LicenseAssignmentTable
+    filterset = filtersets.LicenseAssignmentFilterSet
+
+
+@register_model_view(LicenseAssignment, name='edit')
+class LicenseAssignmentEditView(generic.ObjectEditView):
+    queryset = LicenseAssignment.objects.all()
+    form = forms.LicenseAssignmentForm
+
+
+@register_model_view(LicenseAssignment, name='delete')
+class LicenseAssignmentDeleteView(generic.ObjectDeleteView):
+    queryset = LicenseAssignment.objects.all()

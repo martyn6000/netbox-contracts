@@ -1,12 +1,17 @@
 import django_tables2 as tables
+from django.urls import reverse
 from netbox.tables import NetBoxTable, columns, ChoiceFieldColumn
 from circuits.models import Provider, ProviderAccount
+from dcim.models import Site
 from .models import (
     Contract,
     ContractAssignment,
     ContractType,
     ServiceLevelAgreement,
-    Currency
+    Currency,
+    LicenseAssignment,
+    LicenseType,
+    SoftwareLicense,
 )
 from django_tables2.utils import Accessor
 
@@ -88,52 +93,58 @@ class ContractTypeListTable(NetBoxTable):
 
     class Meta(NetBoxTable.Meta):
         model = ContractType
-        fields = ('pk', 'id', 'name', 'description', 'color', 'comments', 'actions')
-        default_columns = ('name', 'description', 'color')
+        fields = ('pk', 'id', 'name', 'description', 'color', 'comments', 'tags', 'created', 'last_updated', 'actions')
+        default_columns = ('name', 'description', 'color', 'comments')
 
 class ContractAssignmentListTable(NetBoxTable):
     id = tables.Column(linkify=True)
     contract = tables.Column(linkify=True)
     object_type = columns.ContentTypeColumn(verbose_name='Object Type')
     object = tables.Column(linkify=True, orderable=False)
-    actions = columns.ActionsColumn(actions=('edit', 'delete'))
-    end_date = tables.Column(linkify=True)
-    yrc = tables.Column(linkify=True)
-    nrc = tables.Column(linkify=True)
+    currency = tables.Column(linkify=True)
+    yrc = tables.Column(verbose_name='YRC')
+    nrc = tables.Column(verbose_name='NRC')
     sla = tables.Column(linkify=True)
-    fe = tables.Column(linkify=True)
-    fe_account = tables.Column(linkify=True)
-    tags = columns.TagColumn(url_name='plugins:netbox_contracts:contractassignment_list')
-    contract__provider = tables.Column(linkify=True)
+    fe = tables.Column(linkify=True, verbose_name='Field Engineer Provider')
+    fe_account = tables.Column(linkify=True, verbose_name='Field Engineer Account')
+    contract__provider = tables.Column(linkify=True, verbose_name='Provider')
     contract__contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
-    # object__region = tables.Column(linkify=True)
     assignment_status = ChoiceFieldColumn()
     device_serial = tables.Column(
         accessor='object.serial',
         verbose_name='Device Serial',
     )
-    region = tables.Column(
-        accessor='...',
-        verbose_name='Region'
-    )
+    actions = columns.ActionsColumn(actions=('edit', 'delete'))
+
     class Meta(NetBoxTable.Meta):
         model = ContractAssignment
         fields = (
+            'pk',
+            'id',
             'contract',
             'object_type',
             'object',
             'end_date',
+            'currency',
             'yrc',
             'nrc',
             'sla',
+            'provider',
+            'provider_account',
             'fe',
             'fe_account',
             'contract__provider',
             'contract__contract_type',
-            'actions',
             'comments',
+            'tags',
+            'created',
+            'last_updated',
             'assignment_status',
             'device_serial',
+            'actions',
+            'yrc_usd',
+            'nrc_usd',
+            'contract_length_remaining',
         )
         default_columns = (
             'contract',
@@ -144,12 +155,21 @@ class ContractAssignmentListTable(NetBoxTable):
             'object',
             'device_serial',
             'end_date',
+            'currency',
             'yrc',
             'nrc',
             'sla',
-            'fe',
-            'fe_account',
         )
+
+    def render_yrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
+
+    def render_nrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
 
 class ContractAssignmentObjectTable(NetBoxTable):
     contract = tables.Column(linkify=True)
@@ -161,13 +181,19 @@ class ContractAssignmentObjectTable(NetBoxTable):
         verbose_name='Provider account', linkify=True
     )
     fe = tables.Column(
-        verbose_name='FE Provider', linkify=True
+        verbose_name='Field Engineer Provider', linkify=True
     )
     fe_account = tables.Column(
-        verbose_name='FE Provider account', linkify=True
+        verbose_name='Field Engineer Account', linkify=True
     )
     contract__contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
     assignment_status = ChoiceFieldColumn()
+    region = tables.Column(
+        accessor='object',
+        orderable=False,
+        empty_values=(),
+        verbose_name='Region',
+    )
 
     class Meta(NetBoxTable.Meta):
         model = ContractAssignment
@@ -185,6 +211,11 @@ class ContractAssignmentObjectTable(NetBoxTable):
             'actions',
             'comments',
             'assignment_status',
+            'yrc_usd',
+            'nrc_usd',
+            'contract_length',
+            'contract_length_remaining',
+            'region',
         )
         default_columns = (
             'contract',
@@ -200,19 +231,49 @@ class ContractAssignmentObjectTable(NetBoxTable):
         )
         order_by = ('contract__status')
 
+    def render_region(self, record):
+        obj = record.object
+        if obj is None:
+            return None
+
+        # Device / VirtualMachine: region lives behind a Site, reached
+        # either directly or via a cluster.
+        site = getattr(obj, 'site', None)
+        if site is None:
+            cluster = getattr(obj, 'cluster', None)
+            site = getattr(cluster, 'site', None)
+        if site is not None:
+            return site.region
+
+        # Circuit: use the A-side termination when it lands on a Site.
+        terminations = getattr(obj, 'terminations', None)
+        if terminations is not None:
+            for termination in terminations.all():
+                target = termination.termination
+                if isinstance(target, Site):
+                    return target.region
+
+        return None
+
+    def render_yrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
+
+    def render_nrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
+
 class ContractListTable(NetBoxTable):
     name = tables.Column(linkify=True)
     provider = tables.Column(linkify=True)
     parent = tables.Column(linkify=True)
-    yrc = tables.Column(verbose_name='Yeerly recurring costs')
-    tags = columns.TagColumn(url_name='plugins:netbox_contracts:contract_list')
-    contract_type = tables.Column(linkify=False)
-    provider_account = tables.Column(linkify=True) 
-    start_date = tables.Column(linkify=False)
-    end_date = tables.Column(linkify=False)
-    term = tables.Column(linkify=False)
-    notice_period = tables.Column(linkify=False)
-    nrc = tables.Column(linkify=False)
+    currency = tables.Column(linkify=True)
+    yrc = tables.Column(verbose_name='YRC in Local Currency')
+    nrc = tables.Column(verbose_name='NRC in Local Currency')
+    contract_type = columns.ColoredLabelColumn(verbose_name='Contract type')
+    provider_account = tables.Column(linkify=True)
     documents = tables.Column(linkify=False)
     assgined_count = columns.LinkedCountColumn(
         viewname='plugins:netbox_contracts:contractassignment_list',
@@ -220,27 +281,38 @@ class ContractListTable(NetBoxTable):
         verbose_name=('Assignments')
     )
     contract_status = ChoiceFieldColumn()
-    
+    actions = columns.ActionsColumn(actions=('edit', 'delete'))
+    yrc_usd = tables.Column(verbose_name='YRC in USD')
+    nrc_usd = tables.Column(verbose_name='NRC in USD')
+
     class Meta(NetBoxTable.Meta):
         model = Contract
         fields = (
             'pk',
+            'id',
             'name',
             'contract_type',
             'provider',
             'provider_account',
             'start_date',
             'end_date',
-            'term',
-            'notice_period'
+            'notice_period',
+            'currency',
             'yrc',
             'nrc',
             'documents',
             'parent',
             'comments',
+            'tags',
+            'created',
+            'last_updated',
             'assgined_count',
-            'actions',
             'contract_status',
+            'actions',
+            'yrc_usd',
+            'nrc_usd',
+            'contract_length',
+            'contract_length_remaining',
         )
         default_columns = (
             'pk',
@@ -248,22 +320,29 @@ class ContractListTable(NetBoxTable):
             'contract_type',
             'contract_status',
             'provider',
-            'provider_account',
             'start_date',
             'end_date',
-            'term',
-            'notice_period'
+            'currency',
             'yrc',
             'nrc',
-            'documents',
             'assgined_count',
-            'parent',
         )
-        order_by = ('name')
+        order_by = ('name',)
+
+    def render_yrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
+
+    def render_nrc_usd(self, value):
+        if value is None:
+            return "$0.00"
+        return f"${value:,.2f}"
 
 class ServiceLevelAgreementListTable(NetBoxTable):
     name = tables.Column(linkify=True)
     description = tables.Column(linkify=True, verbose_name='Description')
+    actions = columns.ActionsColumn(actions=('edit', 'delete'))
 
     class Meta(NetBoxTable.Meta):
         model = ServiceLevelAgreement
@@ -273,20 +352,110 @@ class ServiceLevelAgreementListTable(NetBoxTable):
             'name',
             'description',
             'comments',
+            'tags',
+            'created',
+            'last_updated',
             'actions',
         )
-        default_columns = ('name', 'description')
+        default_columns = ('name', 'description', 'comments')
 
 class CurrencyListTable(NetBoxTable):
     currency_code = tables.Column(linkify=True)
-
+    actions = columns.ActionsColumn(actions=('edit', 'delete'))
+    country = tables.Column(linkify=True)
+    
     class Meta(NetBoxTable.Meta):
         model = Currency
         fields = (
+            'pk',
+            'id',
             'currency_code',
-            'country',
             'currency_name',
+            'currency_number',
+            'country',
             'usd_rate',
-            'currency_number',        
+            'comments',
+            'tags',
+            'created',
+            'last_updated',
+            'actions',
         )
-        default_columns = ('currency_code', 'country', 'currency_name', 'usd_rate', 'currency_number', )
+        default_columns = ('currency_code', 'currency_name', 'currency_number', 'country', 'usd_rate')
+
+
+#
+# Software licensing
+#
+class LicenseTypeTable(NetBoxTable):
+    name = tables.Column(linkify=True)
+    color = columns.ColorColumn()
+
+    class Meta(NetBoxTable.Meta):
+        model = LicenseType
+        fields = ('pk', 'id', 'name', 'description', 'color', 'tags', 'created', 'last_updated', 'actions')
+        default_columns = ('name', 'description', 'color')
+
+
+class SoftwareLicenseTable(NetBoxTable):
+    license_name = tables.Column(linkify=True)
+    manufacturer = tables.Column(linkify=True)
+    license_type = tables.Column(linkify=True)
+    local_currency = tables.Column(
+        accessor='local_currency.currency_code',
+        verbose_name='Local Currency',
+        linkify=lambda record: (
+            reverse('plugins:netbox_contracts:currency', args=[record.local_currency_id])
+            if record.local_currency_id
+            else None
+        ),
+    )
+    assignment_count = columns.LinkedCountColumn(
+        viewname='plugins:netbox_contracts:licenseassignment_list',
+        url_params={'software_license_id': 'pk'},
+        verbose_name='Assigned Licenses',
+        orderable=False,
+    )
+
+    class Meta(NetBoxTable.Meta):
+        model = SoftwareLicense
+        fields = (
+            'pk',
+            'id',
+            'manufacturer',
+            'license_name',
+            'friendly_name',
+            'license_sku',
+            'per_license_cost',
+            'local_currency',
+            'license_type',
+            'assignment_count',
+            'tags',
+            'created',
+            'last_updated',
+            'actions',
+        )
+        default_columns = (
+            'manufacturer',
+            'license_name',
+            'friendly_name',
+            'license_sku',
+            'per_license_cost',
+            'local_currency',
+            'license_type',
+            'assignment_count',
+        )
+
+
+class LicenseAssignmentTable(NetBoxTable):
+    software_license = tables.Column(linkify=True)
+    object_type = columns.ContentTypeColumn(verbose_name='Object Type')
+    assigned_object = tables.Column(
+        verbose_name='Object',
+        linkify=True,
+        orderable=False,
+    )
+
+    class Meta(NetBoxTable.Meta):
+        model = LicenseAssignment
+        fields = ('pk', 'id', 'software_license', 'object_type', 'assigned_object', 'tags', 'actions')
+        default_columns = ('software_license', 'object_type', 'assigned_object')

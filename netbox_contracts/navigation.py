@@ -39,13 +39,13 @@ provider_buttons = [
         link='plugins:netbox_contracts:provider_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
-        permissions=['netbox_contracts.add_provider'],
+        permissions=['circuits.add_provider'],
     ),
     PluginMenuButton(
         link='plugins:netbox_contracts:provider_bulk_import',
         title=_('Import'),
         icon_class="mdi mdi-upload",
-        permissions=['netbox_contracts.add_provider'],
+        permissions=['circuits.add_provider'],
     )
 ]
 
@@ -69,13 +69,13 @@ provideraccount_buttons = [
         link='plugins:netbox_contracts:provideraccount_add',
         title=_('Add'),
         icon_class='mdi mdi-plus-thick',
-        permissions=['netbox_contracts.add_provideraccount'],
+        permissions=['circuits.add_provideraccount'],
     ),
     PluginMenuButton(
         link='plugins:netbox_contracts:provideraccount_bulk_import',
         title=_('Import'),
         icon_class="mdi mdi-upload",
-        permissions=['netbox_contracts.add_provideraccount'],
+        permissions=['circuits.add_provideraccount'],
     )
 ]
 
@@ -109,6 +109,33 @@ currency_buttons = [
     )
 ]
 
+softwarelicense_buttons = [
+    PluginMenuButton(
+        link='plugins:netbox_contracts:softwarelicense_add',
+        title=_('Add'),
+        icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_softwarelicense'],
+    )
+]
+
+licensetype_buttons = [
+    PluginMenuButton(
+        link='plugins:netbox_contracts:licensetype_add',
+        title=_('Add'),
+        icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_licensetype'],
+    )
+]
+
+licenseassignment_buttons = [
+    PluginMenuButton(
+        link='plugins:netbox_contracts:licenseassignment_add',
+        title=_('Add'),
+        icon_class='mdi mdi-plus-thick',
+        permissions=['netbox_contracts.add_licenseassignment'],
+    )
+]
+
 contract_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:contract_list',
     link_text=_('Contracts'),
@@ -118,7 +145,7 @@ contract_menu_item = PluginMenuItem(
 
 contracttype_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:contracttype_list',
-    link_text=_('Contract type'),
+    link_text=_('Contract Types'),
     buttons=contracttype_buttons,
     permissions=['netbox_contracts.view_contract'],
 )
@@ -127,52 +154,82 @@ provider_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:provider_list',
     link_text=_('Providers'),
     buttons=provider_buttons,
-    permissions=['netbox_contracts.view_provider'],
+    permissions=['circuits.view_provider'],
 )
 
 provideraccount_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:provideraccount_list',
     link_text=_('Provider Accounts'),
     buttons=provideraccount_buttons,
-    permissions=['netbox_contracts.view_provideraccount'],
+    permissions=['circuits.view_provideraccount'],
 )
 
 contract_assignemnt_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:contractassignment_list',
-    link_text=_('Contracts assignments'),
+    link_text=_('Contract Assignments'),
     buttons=contractassingmenttype_buttons,
     permissions=['netbox_contracts.view_contractassignment'],
 )
 
 servicelevelagreement_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:servicelevelagreement_list',
-    link_text=_('Service Level Agreement'),
+    link_text=_('Service Level Agreements'),
     buttons=servicelevelagreement_buttons,
     permissions=['netbox_contracts.view_servicelevelagreement'],
 )
 
 currency_menu_item = PluginMenuItem(
     link='plugins:netbox_contracts:currency_list',
-    link_text=_('Currency'),
+    link_text=_('Currencies'),
     buttons=currency_buttons,
     permissions=['netbox_contracts.view_contract'],
 )
 
+softwarelicense_menu_item = PluginMenuItem(
+    link='plugins:netbox_contracts:softwarelicense_list',
+    link_text=_('Software Licenses'),
+    buttons=softwarelicense_buttons,
+    permissions=['netbox_contracts.view_softwarelicense'],
+)
+
+licenseassignment_menu_item = PluginMenuItem(
+    link='plugins:netbox_contracts:licenseassignment_list',
+    link_text=_('License Assignments'),
+    buttons=licenseassignment_buttons,
+    permissions=['netbox_contracts.view_licenseassignment'],
+)
+
+licensetype_menu_item = PluginMenuItem(
+    link='plugins:netbox_contracts:licensetype_list',
+    link_text=_('License Types'),
+    buttons=licensetype_buttons,
+    permissions=['netbox_contracts.view_licensetype'],
+)
+
+software_items = (
+    softwarelicense_menu_item,
+    licenseassignment_menu_item,
+    licensetype_menu_item,
+)
+
 items = (
     contract_menu_item,
+    contract_assignemnt_menu_item,
     contracttype_menu_item,
     provider_menu_item,
     provideraccount_menu_item,
     servicelevelagreement_menu_item,
-    contract_assignemnt_menu_item,
     currency_menu_item,
 )
 
 if plugin_settings.get('top_level_menu'):
     menu = PluginMenu(
-        label=_('Contracts'),
-        groups=(('Contracts', items),),
+        label=_('SCB Operations'),
+        groups=(
+            ('Contracts', items),
+            ('Software', software_items),
+        ),
         icon_class='mdi mdi-file-sign',
     )
 else:
-    menu_items = items
+    menu_items = items + software_items

@@ -1,0 +1,62 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+{% load i18n %}
+
+{% block content %}
+  <div class="row mb-3">
+    <div class="col col-md-6">
+      <div class="card">
+        <h5 class="card-header">{% trans "Software License" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row">{% trans "Manufacturer" %}</th>
+            <td>{{ object.manufacturer|linkify }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "License Name" %}</th>
+            <td>{{ object.license_name }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Friendly Name" %}</th>
+            <td>{{ object.friendly_name|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "License SKU" %}</th>
+            <td>{{ object.license_sku }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Per License Cost" %}</th>
+            <td>{{ object.per_license_cost|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Local Currency" %}</th>
+            <td>
+              {% if object.local_currency %}
+                <a href="{% url 'plugins:netbox_contracts:currency' pk=object.local_currency.pk %}">{{ object.local_currency.currency_code }}</a>
+              {% else %}
+                {{ ''|placeholder }}
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "License Type" %}</th>
+            <td>{{ object.license_type|linkify }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Assigned Licenses" %}</th>
+            <td>
+              <a href="{% url 'plugins:netbox_contracts:licenseassignment_list' %}?software_license_id={{ object.pk }}">
+                {{ object.assignment_count }}
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+      {% include 'inc/panels/custom_fields.html' %}
+    </div>
+    <div class="col col-md-6">
+      {% include 'inc/panels/tags.html' %}
+      {% include 'inc/panels/comments.html' %}
+    </div>
+  </div>
+{% endblock content %}

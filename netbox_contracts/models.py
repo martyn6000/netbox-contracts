@@ -1,4 +1,5 @@
 from datetime import timedelta, date
+from dateutil.utils import today
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -10,7 +11,8 @@ from netbox.models.features import ContactsMixin
 from utilities.choices import ChoiceSet
 from utilities.fields import ColorField
 from circuits.models import Provider, ProviderAccount
-from dcim.models import Region
+from dcim.models import Manufacturer
+
 
 class StatusChoices(ChoiceSet):
     ACTIVE = 'Active'
@@ -78,13 +80,14 @@ class Currency(NetBoxModel):
         verbose_name=_('currency code')
     )
     country = models.ForeignKey(
-        to=Region,
-        on_delete=models.SET_NULL,
+        to='dcim.Region',
+        on_delete=models.PROTECT,
+        related_name='country',
         blank=True,
         null=True
     )
     currency_name = models.CharField(
-        max_length = 3,
+        max_length = 100,
         verbose_name=_('currency name')
     )
     currency_number = models.CharField(
@@ -98,9 +101,16 @@ class Currency(NetBoxModel):
         blank=True,
         help_text=_('The exchange rate to convert the currency into USD.')
     )
+    comments = models.TextField(
+        blank=True
+    )
 
     class Meta:
         ordering = ('currency_code',)
+        verbose_name_plural = 'Currencies'
+
+    def __str__(self):
+        return self.currency_name
 
 class ContractAssignment(NetBoxModel):
     contract = models.ForeignKey(
@@ -137,12 +147,12 @@ class ContractAssignment(NetBoxModel):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='contract_assignments',
+        related_name='currency',
         verbose_name=_('currency'),
         help_text=_('Currency for this contract assignment')
     )
     yrc = models.DecimalField(
-            verbose_name=_('yearly recurring cost'),
+            verbose_name=_('yrc'),
             max_digits=10,
             decimal_places=2,
             blank=True,
@@ -150,7 +160,7 @@ class ContractAssignment(NetBoxModel):
             help_text=_('Enter the yearly recurring Costs'),
         )
     nrc = models.DecimalField(
-        verbose_name=_('non recurring cost'), 
+        verbose_name=_('nrc'), 
         default=0, 
         max_digits=10, 
         decimal_places=2,
@@ -183,14 +193,18 @@ class ContractAssignment(NetBoxModel):
             on_delete=models.PROTECT,
             related_name='fe',
             blank=True,
-            null=True
+            null=True,
+            verbose_name=_('field engineer provider'),
+            help_text=_('Field Engineer provider responsible for this assignment'),
         )
     fe_account = models.ForeignKey(
         to=ProviderAccount,
         on_delete=models.PROTECT,
         related_name='feaccount',
         blank=True,
-        null=True
+        null=True,
+        verbose_name=_('field engineer account'),
+        help_text=_('Field Engineer account details'),
     )
     comments = models.TextField(
         blank=True,
@@ -203,6 +217,7 @@ class ContractAssignment(NetBoxModel):
         'sla',
         'fe',
         'fe_account',
+        'currency'
     )
 
     class Meta:
@@ -236,7 +251,35 @@ class ContractAssignment(NetBoxModel):
     def get_assignment_status_color(self):
         return StatusChoices.colors.get(self.assignment_status)
 
-class Contract(ContactsMixin,NetBoxModel):
+    def contract_length_remaining(self):
+        if self.end_date:
+            delta = self.end_date - date.today()
+            if delta.days < 0:
+                return "Expired"
+            return f"{delta.days} days"
+        return None
+    
+    @property
+    def nrc_usd(self):
+        if self.nrc is None or self.currency is None or self.currency.usd_rate is None:
+            return None
+
+        return self.nrc * self.currency.usd_rate
+    
+    @property
+    def yrc_usd(self):
+        if self.yrc is None or self.currency is None or self.currency.usd_rate is None:
+            return None
+
+        return self.yrc * self.currency.usd_rate
+
+    def render_yrc_usd(self, value):
+        return f"${value:,.2f}"
+
+    def render_nrc_usd(self, value):
+        return f"${value:,.2f}"
+
+class Contract(NetBoxModel):
     name = models.CharField(
         max_length=100, 
         verbose_name=_('name')
@@ -326,7 +369,16 @@ class Contract(ContactsMixin,NetBoxModel):
 
     def contract_length(self):
         if self.start_date:
-            return self.end_date - self.start_date
+            delta = self.end_date - self.start_date
+            return f"{delta.days} days"
+        return None
+
+    def contract_length_remaining(self):
+        if self.end_date:
+            delta = self.end_date - date.today()
+            if delta.days < 0:
+                return "Expired"
+            return f"{delta.days} days"
         return None
 
     @property
@@ -354,15 +406,15 @@ class Contract(ContactsMixin,NetBoxModel):
         else:
             return "gray"
 
-    @property
-    def usd_yrc_costs(self):
-        usd_yrc = self.currency.usd_rate * self.yrc
-        return usd_yrc
+    # @property
+    # def usd_yrc_costs(self):
+    #     usd_yrc = self.currency.usd_rate * self.yrc
+    #     return usd_yrc
 
-    @property
-    def usd_nrc_costs(self):
-        usd_nrc = self.currency.usd_rate * self.nrc
-        return usd_nrc
+    # @property
+    # def usd_nrc_costs(self):
+    #     usd_nrc = self.currency.usd_rate * self.nrc
+    #     return usd_nrc
 
     @property
     def nrc_usd(self):
@@ -413,3 +465,143 @@ class Contract(ContactsMixin,NetBoxModel):
 
     def get_contract_status_color(self):
         return StatusChoices.colors.get(self.contract_status)
+
+    def render_yrc_usd(self, value):
+        return f"${value:,.2f}"
+
+    def render_nrc_usd(self, value):
+        return f"${value:,.2f}"
+
+
+#
+# Software licensing
+#
+class LicenseType(NetBoxModel):
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name=_('name'),
+    )
+    description = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name=_('description'),
+    )
+    color = ColorField(
+        default=ColorChoices.COLOR_GREY,
+        verbose_name=_('color'),
+    )
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = _('license type')
+        verbose_name_plural = _('license types')
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_contracts:licensetype', args=[self.pk])
+
+
+class SoftwareLicense(NetBoxModel):
+    manufacturer = models.ForeignKey(
+        to=Manufacturer,
+        on_delete=models.PROTECT,
+        related_name='software_licenses',
+        verbose_name=_('manufacturer'),
+    )
+    license_name = models.CharField(
+        max_length=150,
+        verbose_name=_('license name'),
+    )
+    friendly_name = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name=_('friendly name'),
+    )
+    license_sku = models.CharField(
+        max_length=100,
+        verbose_name=_('license SKU'),
+    )
+    per_license_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name=_('per license cost'),
+        help_text=_('Unit cost per license'),
+    )
+    local_currency = models.ForeignKey(
+        to=Currency,
+        on_delete=models.SET_NULL,
+        related_name='software_licenses',
+        blank=True,
+        null=True,
+        verbose_name=_('local currency'),
+    )
+    license_type = models.ForeignKey(
+        to=LicenseType,
+        on_delete=models.PROTECT,
+        related_name='software_licenses',
+        blank=True,
+        null=True,
+        verbose_name=_('license type'),
+    )
+
+    class Meta:
+        ordering = ('license_name',)
+        verbose_name = _('software license')
+        verbose_name_plural = _('software licenses')
+
+    def __str__(self):
+        return self.license_name
+
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_contracts:softwarelicense', args=[self.pk])
+
+    @property
+    def assignment_count(self):
+        return self.assignments.count()
+
+
+class LicenseAssignment(NetBoxModel):
+    software_license = models.ForeignKey(
+        to=SoftwareLicense,
+        on_delete=models.PROTECT,
+        related_name='assignments',
+        verbose_name=_('software license'),
+    )
+    object_type = models.ForeignKey(
+        to=ContentType,
+        on_delete=models.PROTECT,
+        related_name='+',
+        verbose_name=_('object type'),
+    )
+    object_id = models.PositiveBigIntegerField(
+        verbose_name=_('object ID'),
+    )
+    assigned_object = GenericForeignKey(
+        ct_field='object_type',
+        fk_field='object_id',
+    )
+
+    class Meta:
+        ordering = ('software_license',)
+        verbose_name = _('license assignment')
+        verbose_name_plural = _('license assignments')
+        indexes = (models.Index(fields=('object_type', 'object_id'), name='nbc_licassign_object_idx'),)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('software_license', 'object_type', 'object_id'),
+                name='%(app_label)s_%(class)s_unique_license_object',
+            ),
+        )
+
+    def __str__(self):
+        if self.assigned_object:
+            return f'{self.software_license} -> {self.assigned_object}'
+        return str(self.software_license)
+
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_contracts:licenseassignment', args=[self.pk])
